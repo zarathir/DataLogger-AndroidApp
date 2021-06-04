@@ -58,6 +58,8 @@ public class ChartFragment extends Fragment {
                               @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        //TODO: Somehow the charts are not shown in a virtual device.
+        //      Test on real device
         createTestChart();
 
     }
