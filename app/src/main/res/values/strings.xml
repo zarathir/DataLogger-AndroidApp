@@ -4,9 +4,20 @@
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">Units</string>
     <string name="chart_fragment_label">Chart</string>
+    <string name="add_unit_fragment_label">Add Unit</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
+    <string name="name">Name</string>
+    <string name="ip_address">IP Adresse</string>
+    <string name="Add">Hinzufügen</string>
+    <string name="show_trend">Trendview</string>
 
-    <string name="hello_first_fragment">Hello first fragment</string>
-    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string-array name="units_array">
+        <item>Raspberry Pi</item>
+        <item>Arduino</item>
+    </string-array>
+
+    <string-array name="units_interface">
+        <item>Wireless</item>
+    </string-array>
 </resources>

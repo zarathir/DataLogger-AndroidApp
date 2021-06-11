@@ -15,6 +15,9 @@
         <action
             android:id="@+id/action_FirstFragment_to_SecondFragment"
             app:destination="@id/ChartFragment" />
+        <action
+            android:id="@+id/action_FirstFragment_to_addUnitFragment"
+            app:destination="@id/addUnitFragment" />
     </fragment>
     <fragment
         android:id="@+id/ChartFragment"
@@ -26,4 +29,9 @@
             android:id="@+id/action_SecondFragment_to_FirstFragment"
             app:destination="@id/FirstFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/addUnitFragment"
+        android:name="ght.app.datalogger.AddUnitFragment"
+        android:label="@string/add_unit_fragment_label"
+        tools:layout="@layout/fragment_add_unit" />
 </navigation>

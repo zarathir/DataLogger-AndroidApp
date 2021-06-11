@@ -5,6 +5,9 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -22,7 +25,7 @@ class FirstFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    private val data: MutableList<LoggingUnit> = mutableListOf()
+    var adapter : ArrayAdapter<LoggingUnit>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -37,14 +40,30 @@ class FirstFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val recyclerView = binding.recyclerView
+        val model: UnitViewModel by activityViewModels()
 
-        recyclerView.adapter = UnitAdapter(data)
-        recyclerView.layoutManager = LinearLayoutManager(context)
+        adapter = ArrayAdapter<LoggingUnit>(
+            requireContext(),
+            android.R.layout.simple_list_item_1,
+            android.R.id.text1,
+            model.units.value!!
+        );
+
+        binding.listView.adapter = adapter
+
+        model.units.observe(viewLifecycleOwner, Observer { newVal ->
+            adapter?.clear()
+            adapter?.addAll(newVal)
+        })
 
         binding.buttonFirst.setOnClickListener {
             findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
         }
+
+        binding.fab.setOnClickListener {
+            findNavController().navigate(R.id.action_FirstFragment_to_addUnitFragment)
+        }
+
     }
 
     override fun onDestroyView() {
