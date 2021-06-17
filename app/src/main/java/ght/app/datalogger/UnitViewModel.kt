@@ -34,5 +34,6 @@ class UnitViewModel : ViewModel() {
 
     fun removeUnit(unit: LoggingUnit) {
         unitHandler.removeUnit(unit)
+        units.value?.remove(unit)
     }
 }

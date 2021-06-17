@@ -2,7 +2,7 @@
     <string name="app_name">Data Logger</string>
     <string name="action_settings">Settings</string>
     <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">Units</string>
+    <string name="unit_list_fragment_label">Units</string>
     <string name="chart_fragment_label">Chart</string>
     <string name="add_unit_fragment_label">Add Unit</string>
     <string name="next">Next</string>

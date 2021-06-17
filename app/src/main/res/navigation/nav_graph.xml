@@ -3,14 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    android:label="@string/first_fragment_label"
-    app:startDestination="@id/FirstFragment">
+    android:label="@string/unit_list_fragment_label"
+    app:startDestination="@id/UnitListFragment">
 
     <fragment
-        android:id="@+id/FirstFragment"
-        android:name="ght.app.datalogger.FirstFragment"
-        android:label="@string/first_fragment_label"
-        tools:layout="@layout/fragment_first">
+        android:id="@+id/UnitListFragment"
+        android:name="ght.app.datalogger.UnitListFragment"
+        android:label="@string/unit_list_fragment_label"
+        tools:layout="@layout/fragment_unit_list">
 
         <action
             android:id="@+id/action_FirstFragment_to_SecondFragment"
@@ -27,11 +27,15 @@
 
         <action
             android:id="@+id/action_SecondFragment_to_FirstFragment"
-            app:destination="@id/FirstFragment" />
+            app:destination="@id/UnitListFragment" />
     </fragment>
     <fragment
         android:id="@+id/addUnitFragment"
         android:name="ght.app.datalogger.AddUnitFragment"
         android:label="@string/add_unit_fragment_label"
-        tools:layout="@layout/fragment_add_unit" />
+        tools:layout="@layout/fragment_add_unit">
+        <action
+            android:id="@+id/action_addUnitFragment_to_FirstFragment"
+            app:destination="@id/UnitListFragment" />
+    </fragment>
 </navigation>

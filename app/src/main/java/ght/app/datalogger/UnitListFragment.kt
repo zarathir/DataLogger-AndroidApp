@@ -1,6 +1,7 @@
 package ght.app.datalogger
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -12,27 +13,26 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ght.app.datalogger.data.logSystem.LoggingUnit
-import ght.app.datalogger.databinding.FragmentFirstBinding
+import ght.app.datalogger.databinding.FragmentUnitListBinding
 
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
-class FirstFragment : Fragment() {
+class UnitListFragment : Fragment() {
 
-    private var _binding: FragmentFirstBinding? = null
+    private var _binding: FragmentUnitListBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
 
-    var adapter : ArrayAdapter<LoggingUnit>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
 
-        _binding = FragmentFirstBinding.inflate(inflater, container, false)
+        _binding = FragmentUnitListBinding.inflate(inflater, container, false)
         return binding.root
 
     }
@@ -42,19 +42,17 @@ class FirstFragment : Fragment() {
 
         val model: UnitViewModel by activityViewModels()
 
-        adapter = ArrayAdapter<LoggingUnit>(
-            requireContext(),
-            android.R.layout.simple_list_item_1,
-            android.R.id.text1,
-            model.units.value!!
-        );
+        val recyclerView: RecyclerView = view.findViewById(R.id.recycler_view)
 
-        binding.listView.adapter = adapter
+        val units = model.units.value
+        val adapter = units?.let { UnitAdapter(it) }
+        recyclerView.adapter = adapter
+        recyclerView.layoutManager = LinearLayoutManager(context)
 
-        model.units.observe(viewLifecycleOwner, Observer { newVal ->
-            adapter?.clear()
-            adapter?.addAll(newVal)
+        model.getUnits().observe(this, Observer<MutableList<LoggingUnit>> {
+            adapter!!.notifyItemInserted(adapter.itemCount)
         })
+
 
         binding.buttonFirst.setOnClickListener {
             findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)

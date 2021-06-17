@@ -10,9 +10,11 @@ import android.widget.ArrayAdapter
 import android.widget.Spinner
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import ght.app.datalogger.data.logSystem.EnumConnection
 import ght.app.datalogger.data.logSystem.EnumUnits
 import ght.app.datalogger.data.units.UnitArduino
+import ght.app.datalogger.data.units.UnitRaspberry
 import ght.app.datalogger.databinding.FragmentAddUnitBinding
 import ght.app.datalogger.databinding.FragmentChartBinding
 import java.net.InetAddress
@@ -27,7 +29,8 @@ class AddUnitFragment : Fragment() {
 
     private val binding get() = _binding!!
 
-    private var selectedUnitType : String = ""
+    private lateinit var selectedUnitType : EnumUnits
+    private lateinit var selectedIntfType : EnumConnection
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,6 +46,8 @@ class AddUnitFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val model: UnitViewModel by activityViewModels()
+        selectedUnitType = EnumUnits.ARDUINO
+        selectedIntfType = EnumConnection.WIFI
 
 
         val spinnerUnits : Spinner = view.findViewById(R.id.dropdown_unit_type)
@@ -55,7 +60,26 @@ class AddUnitFragment : Fragment() {
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spinnerUnits.adapter = adapter
         }
-        spinnerUnits.onItemSelectedListener
+
+        spinnerUnits.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                if (parent != null) {
+                    when(parent.getItemAtPosition(position)) {
+                        1 -> selectedUnitType = EnumUnits.RASPBERRY
+                        2 -> selectedUnitType = EnumUnits.ARDUINO
+                    }
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+
+            }
+        }
 
         val spinnerInterface : Spinner = view.findViewById(R.id.dropdown_interface_type)
 
@@ -68,12 +92,39 @@ class AddUnitFragment : Fragment() {
             spinnerInterface.adapter = adapter
         }
 
-        binding.buttonAdd.setOnClickListener {
-            val unit = UnitArduino(binding.editTextName.text.toString(),
-            InetAddress.getByName(binding.editTextIpAddress.text.toString()),
-            EnumConnection.WIFI)
+        spinnerInterface.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                if (parent != null) {
+                    when(parent.getItemAtPosition(position)) {
+                        1 -> selectedIntfType = EnumConnection.WIFI
+                    }
+                }
+            }
 
-            model.addUnit(unit)
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                TODO("Not yet implemented")
+            }
+
+        }
+
+        binding.buttonAdd.setOnClickListener {
+
+            when(selectedUnitType) {
+                EnumUnits.RASPBERRY -> model.addUnit(UnitRaspberry(binding.editTextName.text.toString(),
+                    InetAddress.getByName(binding.editTextIpAddress.text.toString()),
+                    selectedIntfType))
+
+                EnumUnits.ARDUINO -> model.addUnit(UnitArduino(binding.editTextName.text.toString(),
+                    InetAddress.getByName(binding.editTextIpAddress.text.toString()),
+                    selectedIntfType))
+            }
+
+            findNavController().navigate(R.id.action_addUnitFragment_to_FirstFragment)
         }
 
     }
@@ -82,20 +133,4 @@ class AddUnitFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-}
-
-class SpinnerAdapter() : AdapterView.OnItemSelectedListener {
-    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        if (parent != null) {
-            when(parent.getItemAtPosition(position)) {
-                1 -> Log.i("VALUE", EnumUnits.RASPBERRY.toString())
-                2 -> Log.i("VALUE", EnumUnits.ARDUINO.toString())
-            }
-        }
-    }
-
-    override fun onNothingSelected(parent: AdapterView<*>?) {
-        TODO("Not yet implemented")
-    }
-
 }
