@@ -14,6 +14,7 @@ class UnitViewModel : ViewModel() {
 
     var units = MutableLiveData<MutableList<LoggingUnit>>()
     private val unitHandler = UnitHandler()
+    private var activeUnit: String? = null
 
     init {
         units.value = unitHandler.unitArrayList.toMutableList()
@@ -28,6 +29,7 @@ class UnitViewModel : ViewModel() {
     }
 
     fun addUnit(unit: LoggingUnit) {
+        //TODO("Catch if unit already exists")
         unitHandler.addUnit(unit)
         units.value?.add(unit)
     }
@@ -35,5 +37,14 @@ class UnitViewModel : ViewModel() {
     fun removeUnit(unit: LoggingUnit) {
         unitHandler.removeUnit(unit)
         units.value?.remove(unit)
+    }
+
+    fun setActiveUnit(unitName: String) {
+        activeUnit = unitName
+    }
+
+    fun getTrendData(): ArrayList<String> {
+        val unit = unitHandler.getCertainUnit(activeUnit)
+        return unit.logDataList
     }
 }

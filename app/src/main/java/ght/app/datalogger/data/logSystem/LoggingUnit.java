@@ -12,6 +12,7 @@ import java.net.Socket;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -22,26 +23,31 @@ import java.util.List;
  */
 public abstract class LoggingUnit implements Serializable {
     private static final long serialVersionID = 1L;
-
     private static final int serverPortNumber = 5001;
+    private static final long connectionTimeoutDefault_ms = 2000; //timeout in normalmode: 2s
+    private static final long connectionTimeoutDebug_ms = 30000; //timeout in debugmode: 30s
 
     private String unitName;
     private EnumUnits unitVendor;
     private transient boolean connected;
+    private transient ArrayList<String> logDataList;
 
     private transient Socket clientSocket;
     private transient PrintWriter writer;
     private transient InputStreamReader streamReader;
     private transient BufferedReader reader;
 
-    private transient Thread connectionThread;
+    private transient Thread unitReaderThread;
 
     private transient List<IntfConnectionListener> connectionStateListeners;
     private transient List<IntfConnectionListener> connectionLostListeners;
+    private transient List<IntfConnectionListener> comandReceivedListeners;
+    private transient List<IntfConnectionListener> errorReceivedListeners;
 
     private transient static String pathToPackage = "DataLoggerApp/src/main/java/ght/app/files/";
     private transient static File logfile = new File(pathToPackage + "datalog.txt");
 
+    private transient long startTime;
 
     //Constructor
     public LoggingUnit(String unitName) {
@@ -55,11 +61,12 @@ public abstract class LoggingUnit implements Serializable {
      */
     public void initUnit() {
         this.connected = false;
+        this.logDataList = new ArrayList<>();
         this.clientSocket = null;
         this.writer = null;
         this.streamReader = null;
         this.reader = null;
-        this.connectionThread = null;
+        this.unitReaderThread = null;
         if (this instanceof UnitArduino) {
             this.unitVendor = EnumUnits.ARDUINO;
         } else if (this instanceof UnitRaspberry) {
@@ -68,6 +75,10 @@ public abstract class LoggingUnit implements Serializable {
 
         this.connectionStateListeners = new ArrayList<>();
         this.connectionLostListeners = new ArrayList<>();
+        this.comandReceivedListeners = new ArrayList<>();
+        this.errorReceivedListeners = new ArrayList<>();
+
+        this.startTime = 0;
     }
 
 
@@ -92,11 +103,37 @@ public abstract class LoggingUnit implements Serializable {
      * if it has done set also the connectionstate Property to the same value.
      * @param  connectionState (as boolean)
      */
-    public void setConnection(boolean connectionState) {
+    private void setConnection(boolean connectionState) {
         this.connected = connectionState;
-        notifyListener(ConnectionEvent.CONNECTION_STATE, connectionState);
+        if (connectionState) {
+            notifyListener(ConnectionEvent.CONNECTION_STATE, 1);
+        }else {
+            notifyListener(ConnectionEvent.CONNECTION_STATE, 0);
+        }
     }
 
+    /**
+     * Methode adds an Element to the Arraylist logDataList
+     * @param logLine (as String)
+     */
+    private void addLogLine(String logLine) {
+        logDataList.add(logLine);
+    }
+
+    /**
+     * Methode clears the whole Arraylist logDataList to make it ready to get new elements
+     */
+    private void clearLogDataList() {
+        logDataList.clear();
+    }
+
+    /**
+     * Methode gives out the whole ArrayList logDataList with all its Loggingdatas
+     * @return logDataList (as ArrayList<String>)
+     */
+    public ArrayList<String> getLogDataList() {
+        return logDataList;
+    }
 
     /**
      * Methode to get the IP-Adress of the Unit
@@ -110,6 +147,20 @@ public abstract class LoggingUnit implements Serializable {
      */
     public abstract EnumConnection getConnectionTyp();
 
+    /**
+     * Methode gives out the Timestamp when the last Connectioncheck ping got received
+     * @return  startTime (as long)
+     */
+    public long getStartTime() {
+        return startTime;
+    }
+
+    /**
+     * Methode sets the Timestamp to check later how much time has past after the the last Connectioncheck ping got received
+     */
+    public void setStartTime() {
+        this.startTime = System.nanoTime();
+    }
 
     /**
      * Methode tries to build up a connection to the Unit
@@ -121,16 +172,23 @@ public abstract class LoggingUnit implements Serializable {
             try {
                 //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", try to connect to Server at: " + getIpAdress().toString().substring(1), PrintOnMonitor.Reason.CONNECTION);
                 clientSocket = new Socket(getIpAdress().toString().substring(1), serverPortNumber); //"192.168.0.102",80);
-                clientSocket.setKeepAlive(true);
+                //clientSocket.setKeepAlive(false);
+
+                writer = new PrintWriter(clientSocket.getOutputStream());
+
+                streamReader = new InputStreamReader(clientSocket.getInputStream());
+                reader = new BufferedReader(streamReader);
+
             } catch (ConnectException e) {
                 //no Connection could have been established
                 throw e;
             } finally {
                 if (!clientSocket.isClosed()) {
-                    connectionThread = new Thread(new setConnectionState());
-                    connectionThread.setName("ConnectThreadUnit_" + getUnitName());
-                    //PrintOnMonitor.printlnMon("Thread: " + "ConnectThreadUnit_" + getUnitName() + " start", PrintOnMonitor.Reason.THREAD, PrintOnMonitor.Reason.CONNECTION);
-                    connectionThread.start();
+                    //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", connection established!", PrintOnMonitor.Reason.CONNECTION);
+                    //start the unitReaderThread
+                    unitReaderThread = new Thread(new UnitReader());
+                    unitReaderThread.setName("ReaderThreadUnit_" + getUnitName());
+                    unitReaderThread.start();
                 }
             }
             try {
@@ -151,23 +209,29 @@ public abstract class LoggingUnit implements Serializable {
     public boolean disconnect() {
         if (isConnected()) {
             try{
-                //writer.close();
-                //reader.close();
                 clientSocket.close();
             }catch(IOException ex){
                 ex.printStackTrace();
             } finally {
                 if (clientSocket.isClosed()) {
-                    connectionThread.interrupt();
+                    //PrintOnMonitor.printlnMon("Thread: " + unitReaderThread.getName() + ", gets interrupted, by disconnecting!", PrintOnMonitor.Reason.THREAD);
+                    //interrupt the unitReaderThread
+                    unitReaderThread.interrupt();
                     try {
-                        connectionThread.join();
+                        unitReaderThread.join();
+                        writer = null;
+                        reader = null;
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
             }
         }
-        //PrintOnMonitor.printlnMon("Unit: "+ getUnitName() + ", Connectionstate of disconnection of Server: " + isConnected(), PrintOnMonitor.Reason.CONNECTION);
+        if (!isConnected()) {
+            //PrintOnMonitor.printlnMon("Unit: "+ getUnitName() + ", disconnected!", PrintOnMonitor.Reason.CONNECTION);
+        } else {
+            //PrintOnMonitor.printlnMon("Unit: "+ getUnitName() + ", Connectionstate of disconnection of Server: " + isConnected(), PrintOnMonitor.Reason.CONNECTION);
+        }
         return isConnected();
     }
 
@@ -179,157 +243,21 @@ public abstract class LoggingUnit implements Serializable {
     public boolean sendCommand(int commandNo) {
         if (isConnected()) {
             //write into Socket
-            try {
-                writer = new PrintWriter(clientSocket.getOutputStream());
-                writer.println(commandNo);
-                //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", Commando sent to Server: " + commandNo, PrintOnMonitor.Reason.UNITINTERFACE);
-                //writer.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            } finally {
-                boolean writerError = writer.checkError();
-                if (writerError) {
-                    //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", Writer set an error: ", PrintOnMonitor.Reason.UNITINTERFACE);
-                }
 
-                return !writerError;
+            String command = "#" + commandNo;
+            writer.println(command);
+            //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", Commando sent to Server: " + command, PrintOnMonitor.Reason.UNITINTERFACE);
+
+            boolean writerError = writer.checkError();
+            if (writerError) {
+                //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", Writer set an error: ", PrintOnMonitor.Reason.UNITINTERFACE);
             }
+
+            return !writerError;
         }
         return false;
     }
 
-    /**
-     * Methode reads the feedback of a command, after a command has been sent to the Unit
-     * @return writer state: true=all allright / false=Error occurred or not unit connected (as boolean)
-     */
-    public int readCommandFeedback() {
-        String serverFeedback = "";
-        int feedback = -1;
-
-        if (isConnected()) {
-            //write into Socket
-            try {
-                streamReader = new InputStreamReader(clientSocket.getInputStream());
-                reader = new BufferedReader(streamReader);
-
-                //read command feedback
-                serverFeedback = reader.readLine();
-                feedback = Integer.parseInt(serverFeedback);
-                //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", Commando-Feedback of Server: " + feedback, PrintOnMonitor.Reason.UNITINTERFACE);
-                //reader.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            } finally {
-                return feedback;
-            }
-        }
-        return feedback;
-    }
-
-    /**
-     * Methode reads the whole Loggingfile, after the command has been sent to the Unit
-     * @return writer state: true=all allright / false=Error occurred or not unit connected (as boolean)
-     */
-    public boolean readLoggingfile() {
-        String serverFeedback = "";
-        boolean feedback = false;
-
-        logfile.delete();
-        try {
-            logfile.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        if (isConnected()) {
-            //in Socket schreiben
-            if (streamReader == null) {
-                try {
-                    streamReader = new InputStreamReader(clientSocket.getInputStream());//, Charset.forName("ISO-8859-1"));
-                    System.out.println("Encoding is: " + streamReader.getEncoding());
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                    return feedback;
-                }
-            }
-            if (reader == null){
-                reader = new BufferedReader(streamReader);
-            }
-
-            //Meldung lesen
-
-            /*String tmp="";
-            boolean finishedReading = false;
-            System.out.print("String got read: ");
-            while (!finishedReading) {
-                try {
-                    tmp = reader.readLine();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return feedback;
-                }
-                System.out.print(tmp + " ");
-                if (tmp != null) {
-                    //char tempchar = (char) tmp;
-                    //String tempString = Character.toString(tempchar);
-                    //serverFeedback += tempString;
-                    writeDatasIntoLoggingFile(tmp);
-                } else {
-                    finishedReading = true;
-                    System.out.print(" finish!");
-                    feedback = true;
-                }
-            }*/
-
-            String tmp="";
-            System.out.print("String got read: ");
-            while (true) {
-                try {
-                    if (!reader.ready()) {
-                        System.out.println(" finish, break!");
-                        feedback = true;
-                        break;
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return feedback;
-                }
-
-                try {
-                    tmp = reader.readLine();
-                    System.out.print(tmp + " ");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return feedback;
-                }
-
-                if (tmp != null) {
-                    writeDatasIntoLoggingFile(tmp);
-                } else {
-                    System.out.print(" finish!");
-                    feedback = true;
-                    break;
-                }
-            }
-            //reader.close();
-
-        }
-        return feedback;
-    }
-
-    /**
-     * Methode writes the received Logdata into the File
-     * @param receivedLogData (as String)
-     */
-    private void writeDatasIntoLoggingFile(String receivedLogData) {
-        // Append flag is set to true
-        try (FileWriter fw = new FileWriter(LoggingUnit.logfile, true)) {
-            fw.write(receivedLogData);
-            fw.write("\r\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * Methode to get all the connection-interfaces of the requested vendor class
@@ -374,6 +302,12 @@ public abstract class LoggingUnit implements Serializable {
             case CONNECTION_LOST:
                 connectionLostListeners.add(cl);
                 break;
+            case CMDFEEDBACK_RECEIVED:
+                comandReceivedListeners.add(cl);
+                break;
+            case ERROR_RECEIVED:
+                errorReceivedListeners.add(cl);
+                break;
         }
     }
 
@@ -393,6 +327,16 @@ public abstract class LoggingUnit implements Serializable {
                     connectionLostListeners.remove(cl);
                 }
                 break;
+            case CMDFEEDBACK_RECEIVED:
+                if (comandReceivedListeners.size()>0) {
+                    comandReceivedListeners.remove(cl);
+                }
+                break;
+            case ERROR_RECEIVED:
+                if (errorReceivedListeners.size()>0) {
+                    errorReceivedListeners.remove(cl);
+                }
+                break;
         }
     }
 
@@ -401,7 +345,7 @@ public abstract class LoggingUnit implements Serializable {
      * The Listeners will get the Event itsself (as Enum) the value that has been given and the UnitName (as String)
      * @param ce (enum-value) of the Event that shall be given to the Listeners (as ConnectionEvent); the boolean value itsself (as boolean)
      */
-    private void notifyListener(ConnectionEvent ce, boolean value) {
+    private void notifyListener(ConnectionEvent ce, int value) {
         switch (ce) {
             case CONNECTION_STATE:
                 connectionStateListeners.forEach((cl) -> {
@@ -415,73 +359,301 @@ public abstract class LoggingUnit implements Serializable {
                     cl.connectionEvent(ce, value, getUnitName());
                 });
                 break;
+            case CMDFEEDBACK_RECEIVED:
+                comandReceivedListeners.forEach((cl) -> {
+                    //all connectionLostListeners gets the given Event.
+                    cl.connectionEvent(ce, value, getUnitName());
+                });
+                break;
+            case ERROR_RECEIVED:
+                errorReceivedListeners.forEach((cl) -> {
+                    //all connectionLostListeners gets the given Event.
+                    cl.connectionEvent(ce, value, getUnitName());
+                });
+                break;
         }
     }
 
     //------------------------------------------------------------------------------------------------------------------
 
     /*
-     * This inner Class is constantly checking the connection to the certain Unit. It will throw an exeption
-     * if a Unit gets is not reachable any more
+     * This inner Class is the Reader of this certain Unit. It has implemented a reader to get all the different datas of a Unit (comand-feedbacks / errors / datas) as requested.
+     * It will be started as an own Thread as soon as a connection gets established to this Unit.
+     * It will get interrupted as soon as a disconnection is perfomed or if the Unit looses its connection.
      * @author M.Gasser
-     * @version 1.000  20.05.2021
+     * @version 1.000  09.06.2021
      */
-    private class setConnectionState implements Runnable {
-        private Socket s;
+    private class UnitReader implements Runnable {
 
-        /**
-         * Methode will check the connection to the Unit every time when the Thread is awake (by calling of checkSocketConnection())
-         * after a check it will bring the Thread into sleep
-         */
+
+        //Constructor
+        public UnitReader() {
+            setStartTime();
+        }
+
+
+
         @Override
         public void run() {
+            //PrintOnMonitor.printlnMon("Thread: " + Thread.currentThread().getName() + ", is running!", PrintOnMonitor.Reason.THREAD);
+            setConnection(!clientSocket.isClosed());
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    if (checkSocketConnection()) {
-                        setConnection(!clientSocket.isClosed());
+                    if (reader.ready()) {
+                        readProtocol();
                     }
-                } catch (ExceptionConnectionLost ignored) {
-                    ;
-                } finally {
-                    //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", check connection: " + isConnected(),PrintOnMonitor.Reason.CONNECTION);
-                    //System.out.println("Unit: " + getUnitName()  + ", check connection: " + isConnected());
-                    if (!Thread.currentThread().isInterrupted()) {
-                        try {
-                            //PrintOnMonitor.printlnMon("Thread: " + Thread.currentThread().getName() + ", goes to sleep!", PrintOnMonitor.Reason.THREAD);
-                            //System.out.println("Thread: " + Thread.currentThread().getName() + ", goes to sleep!");
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                            setConnection(!clientSocket.isClosed());
+                }catch (IOException e) {
+                    e.printStackTrace();
+                }
+/*
+                //check if timeout of connectioncheck ping has passt since the last ping of server (longer timeout while debugging)
+                boolean isDebug = java.lang.management.ManagementFactory.getRuntimeMXBean().
+                        getInputArguments().toString().indexOf("jdwp") >= 0;
+*/
+                //set timeout for checking connection (debugmode= 30s / normalmode= 2s)
+                long localTimeout= connectionTimeoutDefault_ms;
+
+                if (TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - getStartTime()) > localTimeout) {
+                    //more then 2s has past since the last connectioncheck ping --> disconnect
+                    try{
+                        clientSocket.close();
+                    }catch(IOException ex){
+                        ex.printStackTrace();
+                    } finally {
+                        if (clientSocket.isClosed()) {
+                            //PrintOnMonitor.printlnMon("Thread: " + unitReaderThread.getName() + ", gets interrupted, by connection lost!", PrintOnMonitor.Reason.THREAD);
+                            unitReaderThread.interrupt();
+                            writer = null;
+                            reader = null;
                         }
+                    }
+                    notifyListener(ConnectionEvent.CONNECTION_LOST, 1);
+                }
+            }
+            setConnection(false);
+        }
+    }
+
+    /**
+     * Methode reads the whole Protocol that has been received, until it gets the End of the Protocol that is "#". The Protocol looks like following:
+     * It will call the readCommandFeedback to get the Commandnumber, the whole Protocol belongs to.
+     * Then it will call
+     *  -readCommandFeedbackValue (if just a Returnvalue is given)
+     *  -readCommandFeedbackLogData (if the whole Loggingdatas are given)
+     *  -readCommandFeedbackError (if an Error is given)
+     *
+     * Protocol without Logdatas (CommandFeedbackNo: 123 / ComandFeedbackValue: 1):
+     *      #123/l/n
+     *      1/l/n
+     *      #
+     *
+     * * Protocol with Logdatas (CommandFeedbackNo: 2 / Datas: Header: timestamp;value1; + Logdatas: 2021-06-09_16:50:18;1.0;):
+     *      #2/l/n
+     *      timestamp;value1;
+     *      2021-06-09_16:50:18;1.0;
+     *      2021-06-09_16:50:29;0.0;
+     *      2021-06-09_16:50:40;0.0;
+     *      #
+     *
+     * ErrorProtocol without Logdatas (Error: E / ErrorNumberValue: 857):
+     *      #E/l/n
+     *      857/l/n
+     *      #
+     *
+     * ConnectionCheck ping (just a "*")
+     */
+    private void readProtocol() {
+        int readFeedback = 0;
+
+        String commandfeedback = readCommandFeedback();
+        if (commandfeedback.equals("")) {
+            ; //ignored
+        }else if (commandfeedback.equals("*")) {
+            //Connectioncheck
+            setStartTime();
+            //PrintOnMonitor.printMon("*", PrintOnMonitor.Reason.CONNECTIONCHECK);
+        }else if (commandfeedback.equals("E")) {
+            //Errors of Unit
+            //readFeedback = readError(Integer.parseInt(commandfeedback));
+            setStartTime();
+            if (readFeedback > -1) {
+                notifyListener(ConnectionEvent.ERROR_RECEIVED, readFeedback);
+            }
+        }else if (commandfeedback.equals("2")) {
+            //receive Logfile
+            readFeedback = readLogData(Integer.parseInt(commandfeedback));
+            setStartTime();
+            if (readFeedback > -1) {
+                notifyListener(ConnectionEvent.CMDFEEDBACK_RECEIVED, readFeedback);
+            }
+        }else {
+            //all the commandos without any Datas transferred
+            readFeedback = readValue(Integer.parseInt(commandfeedback));
+            setStartTime();
+            if (readFeedback  > -1 ) {
+                notifyListener(ConnectionEvent.CMDFEEDBACK_RECEIVED, readFeedback);
+            }
+        }
+
+    }
+
+    /**
+     * Methode reads the first line of a Protocol and gives out the Comandnumber that has been received.
+     * @return command: the commandnumber to which the analysed protocol belonges to "123"= Commandnumber / "E"=Error (as String)
+     */
+    private String readCommandFeedback() {
+        String serverFeedback = "";
+        String command = "";
+
+        if (isConnected()) {
+            try {
+                //read command feedback
+                serverFeedback = reader.readLine();
+                if (!serverFeedback.equals("*") && !serverFeedback.equals("")) {
+                    command = serverFeedback.substring(1);
+                    //PrintOnMonitor.printlnMon("Unit: " + getUnitName() + ", Commando-Feedback of Server: " + command, PrintOnMonitor.Reason.UNITINTERFACE);
+                } else {
+                    command = serverFeedback;
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                //PrintOnMonitor.printMon(null, PrintOnMonitor.Reason.UNITINTERFACE);
+            } finally {
+                return command;
+            }
+        }
+        return command;
+    }
+
+    /**
+     * Methode reads the secound and last line of a Protocol and gives out the its value that belongs to CommandFeedback.
+     * @param commandNo that got read in the previos methode (as int)
+     * @return commandnumber if the end of the protocol got reached -1= not fullfilled / >0= fullfilled, commandno (as int)
+     */
+    private int readValue(int commandNo) {
+        String serverFeedback = "";
+        String value = "";
+        int result = -1;
+        boolean finishedRead = false;
+
+        if (isConnected()) {
+            while (!finishedRead) {
+                try {
+                    //read command feedback
+                    serverFeedback = reader.readLine();
+
+                    if (serverFeedback == null || !reader.ready()) {
+                        finishedRead = true;
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    //PrintOnMonitor.printMon(null, PrintOnMonitor.Reason.UNITINTERFACE);
+                    break;
+                }
+
+                value = serverFeedback;
+                if (value.equals("")) {
+                    ; //ignored
+                }else if (value.equals("*")) {
+                    //Connectioncheck
+                    setStartTime();
+                    //PrintOnMonitor.printMon("*", PrintOnMonitor.Reason.CONNECTIONCHECK);
+                }else if (value.equals("0")) {
+                    //Commandfeedback value = false
+                    //PrintOnMonitor.printMon("; Value: " + value, PrintOnMonitor.Reason.UNITINTERFACE);
+                }else if (value.equals("1")) {
+                    //Commandfeedback value = true
+                    //PrintOnMonitor.printMon("; Value: " + value, PrintOnMonitor.Reason.UNITINTERFACE);
+                }else if (value.equals("#")) {
+                    //Protocolendline
+                    //PrintOnMonitor.printMon("; end of Protocol reached!", PrintOnMonitor.Reason.UNITINTERFACE);
+                    //PrintOnMonitor.printMon(null, PrintOnMonitor.Reason.UNITINTERFACE);
+                    result = commandNo;
+                } else {
+                    //PrintOnMonitor.printMon("; not valid: " + value, PrintOnMonitor.Reason.UNITINTERFACE);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Methode reads the secound and following lines of a Protocol and writes every line that got read into the file "datalog.txt" and into the ArrayList logDataList.
+     * @param commandNo that got read in the previos methode (as int)
+     * @return commandnumber if the end of the protocol got reached -1= not fullfilled / >0= fullfilled, commandno (as int)
+     */
+    private int readLogData(int commandNo) {
+        String serverFeedback = "";
+        String value = "";
+        int result = -1;
+        boolean finishedRead = false;
+
+        //prepare the Loggingfile
+        logfile.delete();
+        try {
+            logfile.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //prepare the ArrayList logDataList
+        clearLogDataList();
+
+        //read out the datas ans write it into the Loggingfile and the ArrayList logDataList
+        if (isConnected()) {
+            //PrintOnMonitor.printlnMon("; reading Loggdata of Unit (Encoding: "+ streamReader.getEncoding() +").", PrintOnMonitor.Reason.UNITINTERFACE);
+            String line="";
+
+            //PrintOnMonitor.printMon("Unit: " + getUnitName()  + ", String got read: ", PrintOnMonitor.Reason.UNITINTERFACE);
+            while (!finishedRead) {
+                try {
+                    //read command feedback
+                    line = reader.readLine();
+                    //PrintOnMonitor.printMon(line + " ", PrintOnMonitor.Reason.UNITINTERFACE);
+
+                    if (line == null || !reader.ready()) {
+                        if (line.equals("#")) {
+                            finishedRead = true;
+                        }
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    break;
+                }
+
+                if (line != null) {
+                    value = line;
+                    if (value.equals("")) {
+                        ; //ignored
+                    } else if (value.equals("#")) {
+                        //Protocolendline
+                        //PrintOnMonitor.printMon("; end of Protocol reached!", PrintOnMonitor.Reason.UNITINTERFACE);
+                        //PrintOnMonitor.printMon(null, PrintOnMonitor.Reason.UNITINTERFACE);
+                        finishedRead = true;
+                        result = commandNo;
+                    } else {
+                        //Loggingdata (write the Line into Loggingfile and ArrayList logDataList)
+                        writeDatasIntoLoggingFile(line);
+                        addLogLine(line);
                     }
                 }
             }
-            System.out.println("Thread: " + Thread.currentThread().getName() + ", interrupted!");
         }
+        return result;
+    }
 
-        /**
-         * Methode checks the connection to the Unit by establishing an new Socket-connection that will be closed if connection is ok.
-         * if the connection is not ok a Exeption will be thrown and the Thread will interrupted
-         * @return connectionstate: true=still connected / false=not connected anymore (as boolean)
-         */
-        private boolean checkSocketConnection() throws ExceptionConnectionLost {
-            boolean connected = false;
-            try {
-                (s = new Socket(getIpAdress(), serverPortNumber)).close();
-                setConnection(!clientSocket.isClosed());
-                connected = true;
-            } catch (IOException e) {
-                //connection lost
-                Thread.currentThread().interrupt();
-                setConnection(false);
-                notifyListener(ConnectionEvent.CONNECTION_LOST, true);
-                throw new ExceptionConnectionLost(getUnitName());
-            } finally {
-                return connected;
-            }
+
+    /**
+     * Methode writes the received Logdata into the File
+     * @param receivedLogData (as String)
+     */
+    private void writeDatasIntoLoggingFile(String receivedLogData) {
+        // Append flag is set to true
+        try (FileWriter fw = new FileWriter(LoggingUnit.logfile, true)) {
+            fw.write(receivedLogData);
+            fw.write("\r\n");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
-
-

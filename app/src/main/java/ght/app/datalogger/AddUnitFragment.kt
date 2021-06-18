@@ -1,7 +1,6 @@
 package ght.app.datalogger
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,7 +15,6 @@ import ght.app.datalogger.data.logSystem.EnumUnits
 import ght.app.datalogger.data.units.UnitArduino
 import ght.app.datalogger.data.units.UnitRaspberry
 import ght.app.datalogger.databinding.FragmentAddUnitBinding
-import ght.app.datalogger.databinding.FragmentChartBinding
 import java.net.InetAddress
 
 /**
@@ -68,16 +66,13 @@ class AddUnitFragment : Fragment() {
                 position: Int,
                 id: Long
             ) {
-                if (parent != null) {
-                    when(parent.getItemAtPosition(position)) {
-                        1 -> selectedUnitType = EnumUnits.RASPBERRY
-                        2 -> selectedUnitType = EnumUnits.ARDUINO
-                    }
+                when(position) {
+                    0 -> selectedUnitType = EnumUnits.RASPBERRY
+                    1 -> selectedUnitType = EnumUnits.ARDUINO
                 }
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
-
             }
         }
 
@@ -99,15 +94,12 @@ class AddUnitFragment : Fragment() {
                 position: Int,
                 id: Long
             ) {
-                if (parent != null) {
-                    when(parent.getItemAtPosition(position)) {
-                        1 -> selectedIntfType = EnumConnection.WIFI
-                    }
+                when(position) {
+                    1 -> selectedIntfType = EnumConnection.WIFI
                 }
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
-                TODO("Not yet implemented")
             }
 
         }
@@ -123,6 +115,7 @@ class AddUnitFragment : Fragment() {
                     InetAddress.getByName(binding.editTextIpAddress.text.toString()),
                     selectedIntfType))
             }
+
 
             findNavController().navigate(R.id.action_addUnitFragment_to_FirstFragment)
         }

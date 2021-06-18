@@ -11,6 +11,10 @@
     <string name="ip_address">IP Adresse</string>
     <string name="Add">Hinzufügen</string>
     <string name="show_trend">Trendview</string>
+    <string name="connect_button">Connect</string>
+    <string name="command1_button">1</string>
+    <string name="command2_button">2</string>
+    <string name="command3_button">3</string>
 
     <string-array name="units_array">
         <item>Raspberry Pi</item>
