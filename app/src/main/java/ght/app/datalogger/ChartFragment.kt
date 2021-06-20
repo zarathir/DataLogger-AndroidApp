@@ -38,12 +38,20 @@ class ChartFragment : Fragment() {
         chart.title("Test trendview")
         chart.yAxis(0).title("Sensorwert")
 
-        //TODO("Implement method to get the log data from LoggingUnit")
+        var logData = model.getTrendData()
+
         val data: MutableList<DataEntry> = ArrayList()
-        data.add(ValueDataEntry("10-10-2020 10:10", 20))
-        data.add(ValueDataEntry("10-10-2020 10:11", 21))
-        data.add(ValueDataEntry("10-10-2020 10:12", 25))
-        data.add(ValueDataEntry("10-10-2020 10:13", 15))
+
+        for (entry : String in logData) {
+            data.add(toDataEntry(entry))
+        }
+
+        if (data.isEmpty()) {
+            data.add(ValueDataEntry("10-10-2020 10:10", 20))
+            data.add(ValueDataEntry("10-10-2020 10:11", 21))
+            data.add(ValueDataEntry("10-10-2020 10:12", 25))
+            data.add(ValueDataEntry("10-10-2020 10:13", 15))
+        }
 
         chart.data(data)
 
@@ -58,7 +66,7 @@ class ChartFragment : Fragment() {
         _binding = null
     }
 
-    private fun StringToDataEntry(data: String): ValueDataEntry {
+    private fun toDataEntry(data: String): ValueDataEntry {
         val x = data.substringBefore(";")
         val value = data.substringAfter(";").toInt()
         return ValueDataEntry(x, value)

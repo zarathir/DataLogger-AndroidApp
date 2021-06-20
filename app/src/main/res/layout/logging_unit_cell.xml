@@ -93,13 +93,37 @@
 
         </LinearLayout>
 
-        <Button
-            android:id="@+id/trendview_button"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="@string/show_trend"
-            android:textAlignment="center"
-            android:drawableLeft="@android:drawable/ic_menu_zoom" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/trendview_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/show_trend"
+                android:textAlignment="center"
+                android:insetLeft="2dp"
+                android:paddingLeft="24dp"
+                android:paddingRight="24dp"
+                android:drawableLeft="@android:drawable/ic_menu_zoom" />
+
+            <Button
+                android:id="@+id/remove_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/remove_unit"
+                android:textAlignment="center"
+                android:insetLeft="2dp"
+                android:paddingLeft="24dp"
+                android:paddingRight="24dp"
+                android:drawableLeft="@android:drawable/btn_dialog"/>
+
+        </LinearLayout>
+
+
+
 
     </LinearLayout>
 

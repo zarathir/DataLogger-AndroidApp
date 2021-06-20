@@ -6,15 +6,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ght.app.datalogger.databinding.FragmentUnitListBinding
 
 /**
- * A simple [Fragment] subclass as the default destination in the navigation.
+ * [Fragment] to display the units in a view and perform actions on each unit
  */
-class UnitListFragment : Fragment() {
+class UnitListFragment : Fragment(){
 
     private var _binding: FragmentUnitListBinding? = null
 
@@ -22,6 +23,8 @@ class UnitListFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
+    private var adapter: UnitAdapter? = null
+    private var onclickInterface: OnClickInterface? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -38,16 +41,39 @@ class UnitListFragment : Fragment() {
 
         val model: UnitViewModel by activityViewModels()
 
+        onclickInterface = object : OnClickInterface {
+            override fun setClick(pos: Int, source: String) {
+
+                val unit = model.units.value?.get(pos)
+
+                when (source) {
+                    "remove" -> {
+                        if (unit != null) {
+                            model.removeUnit(unit)
+                        }
+                        adapter!!.notifyItemRemoved(pos)
+                    }
+
+                    "trend" -> {
+                        model.setActiveUnit(unit!!.unitName)
+                        view.findNavController().navigate(
+                        R.id.action_FirstFragment_to_SecondFragment
+                        )
+                    }
+                }
+            }
+        }
+
         val recyclerView: RecyclerView = view.findViewById(R.id.recycler_view)
 
         val units = model.units.value
-        val adapter = units?.let { UnitAdapter(it) }
+        adapter = units?.let { UnitAdapter(it, onclickInterface as OnClickInterface) }
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(context)
 
 
         model.getUnits().observe(this, {
-            adapter!!.notifyItemInserted(adapter.itemCount)
+            adapter!!.notifyItemInserted(adapter!!.itemCount)
         })
 
         binding.fab.setOnClickListener {
@@ -59,9 +85,5 @@ class UnitListFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    private fun passTrendData() {
-
     }
 }

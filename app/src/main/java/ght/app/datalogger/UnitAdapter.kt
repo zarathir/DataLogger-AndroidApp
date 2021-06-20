@@ -1,21 +1,21 @@
 package ght.app.datalogger
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import androidx.fragment.app.activityViewModels
-import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.snackbar.Snackbar
 import ght.app.datalogger.data.logSystem.LoggingUnit
 import ght.app.datalogger.data.units.UnitArduino
 import ght.app.datalogger.data.units.UnitRaspberry
 
-class UnitAdapter(private val list: MutableList<LoggingUnit>)
+class UnitAdapter(private val list: MutableList<LoggingUnit>, onClickInterface: OnClickInterface)
     : RecyclerView.Adapter<UnitAdapter.ViewHolder>() {
+
+    var onClickInterface: OnClickInterface = onClickInterface
+
+    var state: String = ""
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val unitNameTextView : TextView = view.findViewById(R.id.unit_name)
@@ -26,6 +26,8 @@ class UnitAdapter(private val list: MutableList<LoggingUnit>)
         val btnCmd2: Button = view.findViewById(R.id.command_button_2)
         val btnCmd3: Button = view.findViewById(R.id.command_button_3)
         val btnTrendView: Button = view.findViewById(R.id.trendview_button)
+        val btnRemoveUnit: Button = view.findViewById(R.id.remove_button)
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -42,20 +44,31 @@ class UnitAdapter(private val list: MutableList<LoggingUnit>)
         holder.unitIpAddress.text = ipAddressText.subSequence(1, ipAddressText.length )
 
         holder.btnConnect.setOnClickListener {
-            //connectUnit(position)
-            val unit = list[position]
-            Log.i("EVENT", "Clicked: {}$unit connect")
+            if (!list[position].isConnected) {
+                state = connectUnit(position)
+            } else {
+                state = disconnectUnit(position)
+            }
         }
 
         holder.btnCmd1.setOnClickListener {
-            //sendCommand(1, position)
-            val unit = list[position]
-            Log.i("EVENT", "Clicked: {}$unit command 1")
+            state = sendCommand(1, position)
+        }
+
+        holder.btnCmd2.setOnClickListener {
+            state = sendCommand(2, position)
+        }
+
+        holder.btnCmd3.setOnClickListener {
+            state = sendCommand(3, position)
         }
 
         holder.btnTrendView.setOnClickListener {
+            onClickInterface.setClick(holder.adapterPosition, "trend")
+        }
 
-            it.findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
+        holder.btnRemoveUnit.setOnClickListener {
+            onClickInterface.setClick(holder.adapterPosition, "remove")
         }
 
     }
@@ -72,7 +85,7 @@ class UnitAdapter(private val list: MutableList<LoggingUnit>)
         }
     }
 
-    fun connectUnit(position: Int): String {
+    private fun connectUnit(position: Int): String {
         list[position].connect()
         return if (list[position].isConnected) {
             "Unit connected"
@@ -81,7 +94,7 @@ class UnitAdapter(private val list: MutableList<LoggingUnit>)
         }
     }
 
-    fun disconnectUnit(position: Int): String {
+    private fun disconnectUnit(position: Int): String {
         list[position].disconnect()
 
         return if (!list[position].isConnected) {
@@ -91,7 +104,7 @@ class UnitAdapter(private val list: MutableList<LoggingUnit>)
         }
     }
 
-    fun sendCommand(id: Int, position: Int): String {
+    private fun sendCommand(id: Int, position: Int): String {
 
         return if (list[position].isConnected) {
             when(id) {
