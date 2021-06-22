@@ -38,6 +38,7 @@ public abstract class LoggingUnit implements Serializable {
     private transient BufferedReader reader;
 
     private transient Thread unitReaderThread;
+    private transient Thread unitConnectionThread;
 
     private transient List<IntfConnectionListener> connectionStateListeners;
     private transient List<IntfConnectionListener> connectionLostListeners;
@@ -67,6 +68,7 @@ public abstract class LoggingUnit implements Serializable {
         this.streamReader = null;
         this.reader = null;
         this.unitReaderThread = null;
+        this.unitConnectionThread = null;
         if (this instanceof UnitArduino) {
             this.unitVendor = EnumUnits.ARDUINO;
         } else if (this instanceof UnitRaspberry) {
@@ -166,12 +168,14 @@ public abstract class LoggingUnit implements Serializable {
      * Methode tries to build up a connection to the Unit
      * @return connectionstate true=connected / false=disconnected (as boolean)
      */
-    public boolean connect() throws Exception{
+    /*public boolean connect() throws Exception{
         if (!isConnected()) {
             //Client Socket erzeugen, incl. Verbindungsanfrage
             try {
                 //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", try to connect to Server at: " + getIpAdress().toString().substring(1), PrintOnMonitor.Reason.CONNECTION);
-                clientSocket = new Socket(getIpAdress().toString().substring(1), serverPortNumber); //"192.168.0.102",80);
+                //clientSocket = new Socket(getIpAdress().toString().substring(1), serverPortNumber);
+
+                clientSocket = new Socket(InetAddress.getByName("192.168.0.104"), serverPortNumber);
                 //clientSocket.setKeepAlive(false);
 
                 writer = new PrintWriter(clientSocket.getOutputStream());
@@ -182,15 +186,16 @@ public abstract class LoggingUnit implements Serializable {
             } catch (ConnectException e) {
                 //no Connection could have been established
                 throw e;
-            } finally {
-                if (!clientSocket.isClosed()) {
-                    //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", connection established!", PrintOnMonitor.Reason.CONNECTION);
-                    //start the unitReaderThread
-                    unitReaderThread = new Thread(new UnitReader());
-                    unitReaderThread.setName("ReaderThreadUnit_" + getUnitName());
-                    unitReaderThread.start();
-                }
             }
+
+            if (!clientSocket.isClosed()) {
+                //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", connection established!", PrintOnMonitor.Reason.CONNECTION);
+                //start the unitReaderThread
+                unitReaderThread = new Thread(new UnitReader());
+                unitReaderThread.setName("ReaderThreadUnit_" + getUnitName());
+                unitReaderThread.start();
+            }
+
             try {
                 Thread.currentThread().sleep(200);
             } catch (IllegalArgumentException ignored) {
@@ -200,13 +205,13 @@ public abstract class LoggingUnit implements Serializable {
             //PrintOnMonitor.printlnMon("Unit: "+ getUnitName() + ", Connectionstate of connection to Server: " + isConnected(), PrintOnMonitor.Reason.CONNECTION);
         }
         return isConnected();
-    }
+    }*/
 
     /**
      * Methode disconnects the connection to the Unit
      * @return connectionstate: true=connected / false=disconnected (as boolean)
      */
-    public boolean disconnect() {
+    /*public boolean disconnect() {
         if (isConnected()) {
             try{
                 clientSocket.close();
@@ -233,7 +238,7 @@ public abstract class LoggingUnit implements Serializable {
             //PrintOnMonitor.printlnMon("Unit: "+ getUnitName() + ", Connectionstate of disconnection of Server: " + isConnected(), PrintOnMonitor.Reason.CONNECTION);
         }
         return isConnected();
-    }
+    }*/
 
     /**
      * Methode sends a command number to the Unit
@@ -372,6 +377,19 @@ public abstract class LoggingUnit implements Serializable {
                 });
                 break;
         }
+    }
+
+    public void connect() {
+        //start the unitConnectionThread
+        unitConnectionThread = new Thread(new Connection());
+        unitConnectionThread.setName("ConnectionThreadUnit_" + getUnitName());
+        unitConnectionThread.start();
+    }
+
+    public void disconnect() {
+        //interrupt the unitConnectionThread
+        unitConnectionThread.interrupt();
+
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -656,4 +674,105 @@ public abstract class LoggingUnit implements Serializable {
             e.printStackTrace();
         }
     }
+
+
+    //------------------------------------------------------------------------------------------------------------------
+
+    public class Connection implements Runnable{
+
+        @Override
+        public void run() {
+            try {
+                connectUnit();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            while (!Thread.currentThread().isInterrupted()) {
+                ;
+            }
+            disconnectUnit();
+        }
+
+        /**
+         * Methode tries to build up a connection to the Unit
+         * @return connectionstate true=connected / false=disconnected (as boolean)
+         */
+        public boolean connectUnit() throws Exception{
+            if (!isConnected()) {
+                //Client Socket erzeugen, incl. Verbindungsanfrage
+                try {
+                    //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", try to connect to Server at: " + getIpAdress().toString().substring(1), PrintOnMonitor.Reason.CONNECTION);
+                    clientSocket = new Socket(getIpAdress().toString().substring(1), serverPortNumber);
+
+                    //clientSocket = new Socket(InetAddress.getByName("192.168.0.104"), serverPortNumber);
+                    //clientSocket.setKeepAlive(false);
+
+                    writer = new PrintWriter(clientSocket.getOutputStream());
+
+                    streamReader = new InputStreamReader(clientSocket.getInputStream());
+                    reader = new BufferedReader(streamReader);
+
+                } catch (ConnectException e) {
+                    //no Connection could have been established
+                    throw e;
+                }
+
+                if (!clientSocket.isClosed()) {
+                    //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", connection established!", PrintOnMonitor.Reason.CONNECTION);
+                    //start the unitReaderThread
+                    unitReaderThread = new Thread(new LoggingUnit.UnitReader());
+                    unitReaderThread.setName("ReaderThreadUnit_" + getUnitName());
+                    unitReaderThread.start();
+                }
+
+                try {
+                    Thread.currentThread().sleep(200);
+                } catch (IllegalArgumentException ignored) {
+                    ;// to prevent Exception: "Not on FX application thread;"
+                }
+
+                //PrintOnMonitor.printlnMon("Unit: "+ getUnitName() + ", Connectionstate of connection to Server: " + isConnected(), PrintOnMonitor.Reason.CONNECTION);
+            }
+            return isConnected();
+        }
+
+        /**
+         * Methode disconnects the connection to the Unit
+         * @return connectionstate: true=connected / false=disconnected (as boolean)
+         */
+        public boolean disconnectUnit() {
+            if (isConnected()) {
+                try{
+                    clientSocket.close();
+                }catch(IOException ex){
+                    ex.printStackTrace();
+                } finally {
+                    if (clientSocket.isClosed()) {
+                        //PrintOnMonitor.printlnMon("Thread: " + unitReaderThread.getName() + ", gets interrupted, by disconnecting!", PrintOnMonitor.Reason.THREAD);
+                        //interrupt the unitReaderThread
+                        unitReaderThread.interrupt();
+                        try {
+                            unitReaderThread.join();
+                            writer = null;
+                            reader = null;
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            if (!isConnected()) {
+                //PrintOnMonitor.printlnMon("Unit: "+ getUnitName() + ", disconnected!", PrintOnMonitor.Reason.CONNECTION);
+            } else {
+                //PrintOnMonitor.printlnMon("Unit: "+ getUnitName() + ", Connectionstate of disconnection of Server: " + isConnected(), PrintOnMonitor.Reason.CONNECTION);
+            }
+            return isConnected();
+        }
+
+    }
+
+
+
 }
+
