@@ -9,6 +9,7 @@ import androidx.fragment.app.activityViewModels
 import com.anychart.AnyChart
 import com.anychart.chart.common.dataentry.DataEntry
 import com.anychart.chart.common.dataentry.ValueDataEntry
+import com.google.android.material.snackbar.Snackbar
 import ght.app.datalogger.databinding.FragmentChartBinding
 
 class ChartFragment : Fragment() {
@@ -35,22 +36,23 @@ class ChartFragment : Fragment() {
         val model: UnitViewModel by activityViewModels()
 
         val chart = AnyChart.line()
-        chart.title("Test trendview")
+        chart.title(model.getActiveUnit() + " unit Trenddaten")
         chart.yAxis(0).title("Sensorwert")
 
-        var logData = model.getTrendData()
+        val logData = model.getTrendData()
 
         val data: MutableList<DataEntry> = ArrayList()
 
         for (entry : String in logData) {
+            if (!entry.equals("timestamp;value1"))
             data.add(toDataEntry(entry))
         }
 
         if (data.isEmpty()) {
-            data.add(ValueDataEntry("10-10-2020 10:10", 20))
-            data.add(ValueDataEntry("10-10-2020 10:11", 21))
-            data.add(ValueDataEntry("10-10-2020 10:12", 25))
-            data.add(ValueDataEntry("10-10-2020 10:13", 15))
+            data.add(ValueDataEntry("10-10-2020 10:10", 0))
+            Snackbar.make(view, "Keine Daten vorhanden. " +
+                    "Bitte zuerst verbinden und von Unit laden", Snackbar.LENGTH_LONG)
+                .show()
         }
 
         chart.data(data)
@@ -68,7 +70,7 @@ class ChartFragment : Fragment() {
 
     private fun toDataEntry(data: String): ValueDataEntry {
         val x = data.substringBefore(";")
-        val value = data.substringAfter(";").toInt()
+        val value = data.substringAfter(";").toFloat()
         return ValueDataEntry(x, value)
     }
 

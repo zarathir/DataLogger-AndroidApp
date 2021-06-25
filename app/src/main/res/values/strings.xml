@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Data Logger</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_safe_units">Safe units</string>
+    <string name="action_restore_units">Restore units</string>
     <!-- Strings used for fragments for navigation -->
     <string name="unit_list_fragment_label">Units</string>
     <string name="chart_fragment_label">Chart</string>

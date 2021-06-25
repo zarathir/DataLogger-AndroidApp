@@ -10,12 +10,10 @@ import ght.app.datalogger.data.logSystem.LoggingUnit
 import ght.app.datalogger.data.units.UnitArduino
 import ght.app.datalogger.data.units.UnitRaspberry
 
-class UnitAdapter(private val list: MutableList<LoggingUnit>, onClickInterface: OnClickInterface)
+class UnitAdapter(private var list: MutableList<LoggingUnit>, private var onClickInterface: OnClickInterface)
     : RecyclerView.Adapter<UnitAdapter.ViewHolder>() {
 
-    var onClickInterface: OnClickInterface = onClickInterface
-
-    var state: String = ""
+    private var state: String = ""
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val unitNameTextView : TextView = view.findViewById(R.id.unit_name)
@@ -44,10 +42,10 @@ class UnitAdapter(private val list: MutableList<LoggingUnit>, onClickInterface: 
         holder.unitIpAddress.text = ipAddressText.subSequence(1, ipAddressText.length )
 
         holder.btnConnect.setOnClickListener {
-            if (!list[position].isConnected) {
-                state = connectUnit(position)
+            state = if (!list[position].isConnected) {
+                connectUnit(position)
             } else {
-                state = disconnectUnit(position)
+                disconnectUnit(position)
             }
         }
 
@@ -64,17 +62,21 @@ class UnitAdapter(private val list: MutableList<LoggingUnit>, onClickInterface: 
         }
 
         holder.btnTrendView.setOnClickListener {
-            onClickInterface.setClick(holder.adapterPosition, "trend")
+            onClickInterface.setClick(holder.absoluteAdapterPosition, "trend")
         }
 
         holder.btnRemoveUnit.setOnClickListener {
-            onClickInterface.setClick(holder.adapterPosition, "remove")
+            onClickInterface.setClick(holder.absoluteAdapterPosition, "remove")
         }
-
     }
 
     override fun getItemCount(): Int {
         return list.size
+    }
+
+    fun updateView(list: MutableList<LoggingUnit>) {
+        this.list = list
+        notifyDataSetChanged()
     }
 
     private fun getUnitType(unit: LoggingUnit): String {

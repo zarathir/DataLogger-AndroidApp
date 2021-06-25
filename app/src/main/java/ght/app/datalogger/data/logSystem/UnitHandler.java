@@ -1,6 +1,9 @@
 package ght.app.datalogger.data.logSystem;
 
+import android.content.Context;
+
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 
@@ -11,8 +14,9 @@ import java.util.ArrayList;
  * @version 1.000  04.05.2021
  */
 public class UnitHandler implements Serializable{
-    private static String pathToPackage = "DataLoggerApp/src/main/java/ght/app/files/";
+    private static String pathToPackage = "DataLogger/app/src/main/java/ght/app/files/";
     private static File file = new File(pathToPackage + "MyUnits.ser");
+    private static final String FILE_NAME = "MyUnits.ser";
 
 
     private ArrayList<LoggingUnit> myUnits;
@@ -67,9 +71,19 @@ public class UnitHandler implements Serializable{
     /**
      * Methode writes all the Units of the Unit-ArrayList into a file, to be able to restore it sometime later.
      */
-    public void writeUnitsIntoFile() {
+    public void writeUnitsIntoFile(Context context) {
 
         if (myUnits.size() > 0) {
+
+            try (FileOutputStream fos = context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
+            ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+                oos.writeObject(myUnits);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            ;
+            /*
             try (OutputStream fos = new FileOutputStream(file);
                  ObjectOutputStream oos = new ObjectOutputStream(fos)) {
 
@@ -83,14 +97,34 @@ public class UnitHandler implements Serializable{
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        */
         }
     }
 
     /**
      * Methode reads all the Units out of the file and restores the Unit-ArrayList with it.
      */
-    public void readUnitsOfFile() throws ExceptionDeserialization  {
+    public void readUnitsOfFile(Context context) throws ExceptionDeserialization {
 
+        try (FileInputStream fis = context.openFileInput(FILE_NAME);
+        ObjectInputStream ois = new ObjectInputStream(fis)) {
+            myUnits.clear();
+
+            try {
+                myUnits = (ArrayList<LoggingUnit>) ois.readObject();
+
+                for (LoggingUnit unit : myUnits) {
+                    unit.initUnit();
+                }
+
+            } catch (Exception e) {
+                throw new ExceptionDeserialization();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+/*
         try (InputStream fis = new FileInputStream(file);
              ObjectInputStream ois = new ObjectInputStream(fis)) {
 
@@ -114,6 +148,8 @@ public class UnitHandler implements Serializable{
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+ */
 
     }
 

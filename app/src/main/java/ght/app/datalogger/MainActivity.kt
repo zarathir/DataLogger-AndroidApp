@@ -1,10 +1,17 @@
 package ght.app.datalogger
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
+import android.provider.DocumentsContract
+import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -17,6 +24,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
+    private val model: UnitViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,7 +53,14 @@ class MainActivity : AppCompatActivity() {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
-            R.id.action_settings -> true
+            R.id.action_safe_units -> {
+                model.safeUnits(applicationContext)
+                true
+            }
+            R.id.action_restore_units -> {
+                model.restoreUnits(applicationContext)
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }

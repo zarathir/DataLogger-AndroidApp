@@ -1,10 +1,12 @@
 package ght.app.datalogger
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import ght.app.datalogger.data.logSystem.LoggingUnit
 import ght.app.datalogger.data.logSystem.UnitHandler
+import java.lang.Exception
 
 
 /**
@@ -24,27 +26,45 @@ class UnitViewModel : ViewModel() {
         return units
     }
 
-    fun getUnit(name: String) : LoggingUnit {
-        return unitHandler.getCertainUnit(name)
+    fun addUnit(unit: LoggingUnit): Boolean {
+        return try {
+            unitHandler.addUnit(unit)
+            units.value = unitHandler.unitArrayList
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 
-    fun addUnit(unit: LoggingUnit) {
-        //TODO("Catch if unit already exists")
-        unitHandler.addUnit(unit)
-        units.value?.add(unit)
-    }
-
-    fun removeUnit(unit: LoggingUnit) {
-        unitHandler.removeUnit(unit)
-        units.value?.remove(unit)
+    fun removeUnit(unit: LoggingUnit): Boolean {
+        return try {
+            unitHandler.removeUnit(unit)
+            units.value = unitHandler.unitArrayList
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 
     fun setActiveUnit(unitName: String) {
         activeUnit = unitName
     }
 
+    fun getActiveUnit() : String? {
+        return activeUnit
+    }
+
     fun getTrendData(): ArrayList<String> {
         val unit = unitHandler.getCertainUnit(activeUnit)
         return unit.logDataList
+    }
+
+    fun safeUnits(context: Context) {
+        unitHandler.writeUnitsIntoFile(context)
+    }
+
+    fun restoreUnits(context: Context) {
+        unitHandler.readUnitsOfFile(context)
+        units.value = unitHandler.unitArrayList
     }
 }

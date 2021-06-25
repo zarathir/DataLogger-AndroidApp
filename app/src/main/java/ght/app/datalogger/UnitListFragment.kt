@@ -1,15 +1,21 @@
 package ght.app.datalogger
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.DocumentsContract
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.Observer
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import ght.app.datalogger.data.logSystem.LoggingUnit
 import ght.app.datalogger.databinding.FragmentUnitListBinding
 
 /**
@@ -71,10 +77,10 @@ class UnitListFragment : Fragment(){
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(context)
 
-
-        model.getUnits().observe(this, {
-            adapter!!.notifyItemInserted(adapter!!.itemCount)
-        })
+        val listObserver = Observer<MutableList<LoggingUnit>> { newList ->
+            adapter?.updateView(newList)
+        }
+        model.getUnits().observe(this, listObserver)
 
         binding.fab.setOnClickListener {
             findNavController().navigate(R.id.action_FirstFragment_to_addUnitFragment)

@@ -1,6 +1,10 @@
 package ght.app.datalogger.data.logSystem;
 
 
+import android.content.Context;
+import android.os.Environment;
+import android.os.FileUtils;
+
 import ght.app.datalogger.data.units.UnitArduino;
 import ght.app.datalogger.data.units.UnitRaspberry;
 import ght.app.datalogger.data.logSystem.IntfConnectionListener.ConnectionEvent;
@@ -46,7 +50,11 @@ public abstract class LoggingUnit implements Serializable {
     private transient List<IntfConnectionListener> errorReceivedListeners;
 
     private transient static String pathToPackage = "DataLoggerApp/src/main/java/ght/app/files/";
-    private transient static File logfile = new File(pathToPackage + "datalog.txt");
+    //private transient static File logfile = new File(pathToPackage + "datalog.txt");
+    private transient static File logfile = new File(Environment.getExternalStoragePublicDirectory(
+            Environment.DIRECTORY_DOCUMENTS)
+            + File.separator
+            +"datalog.txt");
 
     private transient long startTime;
 
@@ -666,6 +674,15 @@ public abstract class LoggingUnit implements Serializable {
      * @param receivedLogData (as String)
      */
     private void writeDatasIntoLoggingFile(String receivedLogData) {
+
+        try (FileWriter fw = new FileWriter(LoggingUnit.logfile, true)) {
+            fw.write(receivedLogData);
+            fw.write("\r\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        /*
         // Append flag is set to true
         try (FileWriter fw = new FileWriter(LoggingUnit.logfile, true)) {
             fw.write(receivedLogData);
@@ -673,6 +690,8 @@ public abstract class LoggingUnit implements Serializable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+         */
     }
 
 

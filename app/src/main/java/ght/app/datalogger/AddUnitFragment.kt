@@ -1,15 +1,18 @@
 package ght.app.datalogger
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
 import ght.app.datalogger.data.logSystem.EnumConnection
 import ght.app.datalogger.data.logSystem.EnumUnits
 import ght.app.datalogger.data.units.UnitArduino
@@ -44,7 +47,7 @@ class AddUnitFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val model: UnitViewModel by activityViewModels()
-        selectedUnitType = EnumUnits.ARDUINO
+        selectedUnitType = EnumUnits.RASPBERRY
         selectedIntfType = EnumConnection.WIFI
 
 
@@ -107,23 +110,46 @@ class AddUnitFragment : Fragment() {
         binding.buttonAdd.setOnClickListener {
 
             when(selectedUnitType) {
-                EnumUnits.RASPBERRY -> model.addUnit(UnitRaspberry(binding.editTextName.text.toString(),
+                EnumUnits.RASPBERRY -> if (model.addUnit(UnitRaspberry(binding.editTextName.text.toString(),
                     InetAddress.getByName(binding.editTextIpAddress.text.toString()),
-                    selectedIntfType))
+                    selectedIntfType))) {
+                    findNavController().navigate(R.id.action_addUnitFragment_to_FirstFragment)
+                } else {
+                    makeSnack(view)
+                }
 
-                EnumUnits.ARDUINO -> model.addUnit(UnitArduino(binding.editTextName.text.toString(),
+                EnumUnits.ARDUINO -> if (model.addUnit(UnitArduino(binding.editTextName.text.toString(),
                     InetAddress.getByName(binding.editTextIpAddress.text.toString()),
-                    selectedIntfType))
+                    selectedIntfType))) {
+                    findNavController().navigate(R.id.action_addUnitFragment_to_FirstFragment)
+                } else {
+                    makeSnack(view)
+                }
             }
 
+            hideKeyboard()
 
-            findNavController().navigate(R.id.action_addUnitFragment_to_FirstFragment)
         }
-
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun makeSnack(view: View) {
+        Snackbar.make(view, "Unit existiert bereits", Snackbar.LENGTH_LONG).show()
+    }
+
+    private fun hideKeyboard() {
+        val manager: InputMethodManager =
+            requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+
+        manager.hideSoftInputFromWindow(
+            requireActivity()
+                .findViewById<View>(android.R.id.content).windowToken, 0
+        )
+
+        binding.editTextIpAddress.clearFocus()
     }
 }
