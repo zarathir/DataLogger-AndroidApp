@@ -1,20 +1,17 @@
 package ght.app.datalogger
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.provider.DocumentsContract
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import ght.app.datalogger.data.logSystem.LoggingUnit
 import ght.app.datalogger.databinding.FragmentUnitListBinding
 
@@ -48,23 +45,42 @@ class UnitListFragment : Fragment(){
         val model: UnitViewModel by activityViewModels()
 
         onclickInterface = object : OnClickInterface {
-            override fun setClick(pos: Int, source: String) {
+            override fun setClick(pos: Int, source: OnClickInterface.Click) {
 
                 val unit = model.units.value?.get(pos)
+                val unitName = unit!!.unitName
 
                 when (source) {
-                    "remove" -> {
-                        if (unit != null) {
-                            model.removeUnit(unit)
-                        }
+                    OnClickInterface.Click.REMOVE -> {
+                        model.removeUnit(unit)
                         adapter!!.notifyItemRemoved(pos)
                     }
 
-                    "trend" -> {
-                        model.setActiveUnit(unit!!.unitName)
+                    OnClickInterface.Click.TREND -> {
+                        model.setActiveUnit(unitName)
                         view.findNavController().navigate(
                         R.id.action_FirstFragment_to_SecondFragment
                         )
+                    }
+
+                    OnClickInterface.Click.CONNECT -> {
+                        makeSnack(view, model.connectUnit(unitName))
+                    }
+
+                    OnClickInterface.Click.DISCONNECT -> {
+                        makeSnack(view, model.disconnectUnit(unitName))
+                    }
+
+                    OnClickInterface.Click.BUTTON1 -> {
+                        makeSnack(view, model.sendCommand(1, unitName))
+                    }
+
+                    OnClickInterface.Click.BUTTON2 -> {
+                        makeSnack(view, model.sendCommand(2, unitName))
+                    }
+
+                    OnClickInterface.Click.BUTTON3 -> {
+                        makeSnack(view, model.sendCommand(3, unitName))
                     }
                 }
             }
@@ -91,5 +107,9 @@ class UnitListFragment : Fragment(){
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun makeSnack(view: View, message: String) {
+        Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
     }
 }

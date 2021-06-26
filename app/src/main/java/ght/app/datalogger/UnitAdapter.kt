@@ -13,8 +13,6 @@ import ght.app.datalogger.data.units.UnitRaspberry
 class UnitAdapter(private var list: MutableList<LoggingUnit>, private var onClickInterface: OnClickInterface)
     : RecyclerView.Adapter<UnitAdapter.ViewHolder>() {
 
-    private var state: String = ""
-
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val unitNameTextView : TextView = view.findViewById(R.id.unit_name)
         val unitTypeTextView: TextView = view.findViewById(R.id.unit_type)
@@ -42,31 +40,40 @@ class UnitAdapter(private var list: MutableList<LoggingUnit>, private var onClic
         holder.unitIpAddress.text = ipAddressText.subSequence(1, ipAddressText.length )
 
         holder.btnConnect.setOnClickListener {
-            state = if (!list[position].isConnected) {
-                connectUnit(position)
+            if (!list[position].isConnected){
+                onClickInterface.setClick(holder.absoluteAdapterPosition,
+                    OnClickInterface.Click.CONNECT)
+                holder.btnConnect.text = "Disconnect"
             } else {
-                disconnectUnit(position)
+                onClickInterface.setClick(holder.absoluteAdapterPosition,
+                    OnClickInterface.Click.DISCONNECT)
+                holder.btnConnect.text = "Connect"
             }
         }
 
         holder.btnCmd1.setOnClickListener {
-            state = sendCommand(1, position)
+            onClickInterface.setClick(holder.absoluteAdapterPosition,
+            OnClickInterface.Click.BUTTON1)
         }
 
         holder.btnCmd2.setOnClickListener {
-            state = sendCommand(2, position)
+            onClickInterface.setClick(holder.absoluteAdapterPosition,
+            OnClickInterface.Click.BUTTON2)
         }
 
         holder.btnCmd3.setOnClickListener {
-            state = sendCommand(3, position)
+            onClickInterface.setClick(holder.absoluteAdapterPosition,
+            OnClickInterface.Click.BUTTON3)
         }
 
         holder.btnTrendView.setOnClickListener {
-            onClickInterface.setClick(holder.absoluteAdapterPosition, "trend")
+            onClickInterface.setClick(holder.absoluteAdapterPosition,
+            OnClickInterface.Click.TREND)
         }
 
         holder.btnRemoveUnit.setOnClickListener {
-            onClickInterface.setClick(holder.absoluteAdapterPosition, "remove")
+            onClickInterface.setClick(holder.absoluteAdapterPosition,
+            OnClickInterface.Click.REMOVE)
         }
     }
 
@@ -85,40 +92,5 @@ class UnitAdapter(private var list: MutableList<LoggingUnit>, private var onClic
             is UnitRaspberry -> "Raspberry"
             else -> ""
         }
-    }
-
-    private fun connectUnit(position: Int): String {
-        list[position].connect()
-        return if (list[position].isConnected) {
-            "Unit connected"
-        } else {
-            "Could not connect"
-        }
-    }
-
-    private fun disconnectUnit(position: Int): String {
-        list[position].disconnect()
-
-        return if (!list[position].isConnected) {
-            "Could not disconnect unit"
-        } else {
-            "Unit disconnected"
-        }
-    }
-
-    private fun sendCommand(id: Int, position: Int): String {
-
-        return if (list[position].isConnected) {
-            when(id) {
-                1 -> {list[position].sendCommand(123)
-                    "Command 1 sent..."}
-                2 -> {list[position].sendCommand(2)
-                    "Command 2 sent..."}
-                3 -> {list[position].sendCommand(3)
-                    "Command 3 sent..."}
-                else -> "Could not send command"
-            }
-        } else
-            "Unit is not connected"
     }
 }

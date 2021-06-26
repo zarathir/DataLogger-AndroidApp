@@ -4,9 +4,13 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import ght.app.datalogger.data.logSystem.LoggingUnit
 import ght.app.datalogger.data.logSystem.UnitHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.lang.Exception
+import kotlin.collections.ArrayList
 
 
 /**
@@ -24,6 +28,10 @@ class UnitViewModel : ViewModel() {
 
     fun getUnits() : LiveData<MutableList<LoggingUnit>> {
         return units
+    }
+
+    fun getUnit(unitName: String): LoggingUnit {
+        return unitHandler.getCertainUnit(unitName)
     }
 
     fun addUnit(unit: LoggingUnit): Boolean {
@@ -66,5 +74,50 @@ class UnitViewModel : ViewModel() {
     fun restoreUnits(context: Context) {
         unitHandler.readUnitsOfFile(context)
         units.value = unitHandler.unitArrayList
+    }
+
+    fun connectUnit(unitName: String): String {
+        val unit = unitHandler.getCertainUnit(unitName)
+        unit.connect()
+        Thread.sleep(500)
+        return if (unit.isConnected) {
+            "Unit connected"
+        } else {
+            "Could not connect"
+        }
+    }
+
+    fun disconnectUnit(unitName: String): String {
+        val unit = unitHandler.getCertainUnit(unitName)
+        unit.disconnect()
+        return if (!unit.isConnected) {
+            "Could not disconnect unit"
+        } else {
+            "Unit disconnected"
+        }
+    }
+
+    fun sendCommand(command: Int, unitName: String): String {
+        val unit = unitHandler.getCertainUnit(unitName)
+
+        return if (unit.isConnected) {
+            when(command) {
+                1 -> {
+                    unit.sendCommand(123)
+                    "Command 1 sent..."
+                }
+                2 -> {
+                    unit.sendCommand(2)
+                    "Command 2 sent..."
+                }
+                3 -> {
+                    unit.sendCommand(3)
+                    "Command 3 sent..."
+                }
+                else -> "Could not send command"
+            }
+        } else {
+            "Unit is not connected"
+        }
     }
 }

@@ -1,13 +1,11 @@
 package ght.app.datalogger.data.logSystem;
 
 
-import android.content.Context;
 import android.os.Environment;
-import android.os.FileUtils;
 
 import ght.app.datalogger.data.units.UnitArduino;
 import ght.app.datalogger.data.units.UnitRaspberry;
-import ght.app.datalogger.data.logSystem.IntfConnectionListener.ConnectionEvent;
+import ght.app.datalogger.data.logSystem.IntfGuiListener.LogUnitEvent;
 
 import java.io.*;
 import java.net.ConnectException;
@@ -44,10 +42,10 @@ public abstract class LoggingUnit implements Serializable {
     private transient Thread unitReaderThread;
     private transient Thread unitConnectionThread;
 
-    private transient List<IntfConnectionListener> connectionStateListeners;
-    private transient List<IntfConnectionListener> connectionLostListeners;
-    private transient List<IntfConnectionListener> comandReceivedListeners;
-    private transient List<IntfConnectionListener> errorReceivedListeners;
+    private transient List<IntfGuiListener> connectionStateListeners;
+    private transient List<IntfGuiListener> connectionLostListeners;
+    private transient List<IntfGuiListener> comandReceivedListeners;
+    private transient List<IntfGuiListener> errorReceivedListeners;
 
     private transient static String pathToPackage = "DataLoggerApp/src/main/java/ght/app/files/";
     //private transient static File logfile = new File(pathToPackage + "datalog.txt");
@@ -113,12 +111,12 @@ public abstract class LoggingUnit implements Serializable {
      * if it has done set also the connectionstate Property to the same value.
      * @param  connectionState (as boolean)
      */
-    private void setConnection(boolean connectionState) {
+    protected void setConnection(boolean connectionState) {
         this.connected = connectionState;
         if (connectionState) {
-            notifyListener(ConnectionEvent.CONNECTION_STATE, 1);
+            notifyListener(LogUnitEvent.CONNECTION_STATE, 1);
         }else {
-            notifyListener(ConnectionEvent.CONNECTION_STATE, 0);
+            notifyListener(LogUnitEvent.CONNECTION_STATE, 0);
         }
     }
 
@@ -304,84 +302,91 @@ public abstract class LoggingUnit implements Serializable {
     }
 
     /**
-     * Methode to add a Listener to the List "connectionStateListener" or "connectionLostListener"
-     * @param cl (connectionListener) of the Interface IntfConnectionListener (as IntfConnectionListener)
+     * Methode to add a Listener to the List:
+     * (connectionStateListener/connectionLostListener/comandReceivedListeners/errorReceivedListeners)
+     * @param gl (GuiListener) of the Interface: IntfGuiListener (as IntfGuiListener)
+     * @param lue (Loggingunit event) event-enum of the Event that shall be added (as LogUnitEvent)
      */
-    public void addListener(IntfConnectionListener cl, ConnectionEvent ce) {
-        switch (ce) {
+    public void addListener(IntfGuiListener gl, LogUnitEvent lue) {
+        switch (lue) {
             case CONNECTION_STATE:
-                connectionStateListeners.add(cl);
+                connectionStateListeners.add(gl);
                 break;
             case CONNECTION_LOST:
-                connectionLostListeners.add(cl);
+                connectionLostListeners.add(gl);
                 break;
             case CMDFEEDBACK_RECEIVED:
-                comandReceivedListeners.add(cl);
+                comandReceivedListeners.add(gl);
                 break;
             case ERROR_RECEIVED:
-                errorReceivedListeners.add(cl);
+                errorReceivedListeners.add(gl);
                 break;
         }
     }
 
     /**
-     * Methode to remove a Listener of the List "connectionStateListener" or "connectionLostListener", just if an Listener is already added
-     * @param cl (connectionListener) of the Interface IntfConnectionListener (as IntfConnectionListener)
+     * Methode to remove a Listener of the List:
+     * (connectionStateListener/connectionLostListener/comandReceivedListeners/errorReceivedListeners),
+     * just if an Listener is already added
+     * @param gl (GuiListener) of the Interface: IntfGuiListener (as IntfGuiListener)
+     * @param lue (Loggingunit event) event-enum of the Event that shall be removed (as LogUnitEvent)
      */
-    public void removeListener(IntfConnectionListener cl, ConnectionEvent ce) {
-        switch (ce) {
+    public void removeListener(IntfGuiListener gl, LogUnitEvent lue) {
+        switch (lue) {
             case CONNECTION_STATE:
                 if (connectionStateListeners.size()>0) {
-                    connectionStateListeners.remove(cl);
+                    connectionStateListeners.remove(gl);
                 }
                 break;
             case CONNECTION_LOST:
                 if (connectionLostListeners.size()>0) {
-                    connectionLostListeners.remove(cl);
+                    connectionLostListeners.remove(gl);
                 }
                 break;
             case CMDFEEDBACK_RECEIVED:
                 if (comandReceivedListeners.size()>0) {
-                    comandReceivedListeners.remove(cl);
+                    comandReceivedListeners.remove(gl);
                 }
                 break;
             case ERROR_RECEIVED:
                 if (errorReceivedListeners.size()>0) {
-                    errorReceivedListeners.remove(cl);
+                    errorReceivedListeners.remove(gl);
                 }
                 break;
         }
     }
 
     /**
-     * Methode to notify all the Listeners of the List "connectionStateListener" or "connectionLostListener".
-     * The Listeners will get the Event itsself (as Enum) the value that has been given and the UnitName (as String)
-     * @param ce (enum-value) of the Event that shall be given to the Listeners (as ConnectionEvent); the boolean value itsself (as boolean)
+     * Methode to notify all the Listeners of the List:
+     * (connectionStateListener/connectionLostListener/comandReceivedListeners/errorReceivedListeners).
+     * The certain Listener will get the Event itsself (as Enum) the value that has been given and the UnitName (as String)
+     * @param lue (Loggingunit event) event-enum of the Event that shall be given to the Listeners (as LogUnitEvent);
+     * @param value the value itsself (as int);
      */
-    private void notifyListener(ConnectionEvent ce, int value) {
-        switch (ce) {
+    private void notifyListener(LogUnitEvent lue, int value) {
+        switch (lue) {
             case CONNECTION_STATE:
                 connectionStateListeners.forEach((cl) -> {
                     //all connectionStateListeners gets the given Event.
-                    cl.connectionEvent(ce, value, getUnitName());
+                    cl.loggingUnitEvent(lue, value, getUnitName());
                 });
                 break;
             case CONNECTION_LOST:
                 connectionLostListeners.forEach((cl) -> {
                     //all connectionLostListeners gets the given Event.
-                    cl.connectionEvent(ce, value, getUnitName());
+                    cl.loggingUnitEvent(lue, value, getUnitName());
                 });
                 break;
             case CMDFEEDBACK_RECEIVED:
                 comandReceivedListeners.forEach((cl) -> {
-                    //all connectionLostListeners gets the given Event.
-                    cl.connectionEvent(ce, value, getUnitName());
+                    //all comandReceivedListeners gets the given Event.
+                    cl.loggingUnitEvent(lue, value, getUnitName());
                 });
                 break;
             case ERROR_RECEIVED:
                 errorReceivedListeners.forEach((cl) -> {
-                    //all connectionLostListeners gets the given Event.
-                    cl.connectionEvent(ce, value, getUnitName());
+                    //all errorReceivedListeners gets the given Event.
+                    cl.loggingUnitEvent(lue, value, getUnitName());
                 });
                 break;
         }
@@ -453,7 +458,7 @@ public abstract class LoggingUnit implements Serializable {
                             reader = null;
                         }
                     }
-                    notifyListener(ConnectionEvent.CONNECTION_LOST, 1);
+                    notifyListener(LogUnitEvent.CONNECTION_LOST, 1);
                 }
             }
             setConnection(false);
@@ -503,21 +508,21 @@ public abstract class LoggingUnit implements Serializable {
             //readFeedback = readError(Integer.parseInt(commandfeedback));
             setStartTime();
             if (readFeedback > -1) {
-                notifyListener(ConnectionEvent.ERROR_RECEIVED, readFeedback);
+                notifyListener(LogUnitEvent.ERROR_RECEIVED, readFeedback);
             }
         }else if (commandfeedback.equals("2")) {
             //receive Logfile
             readFeedback = readLogData(Integer.parseInt(commandfeedback));
             setStartTime();
             if (readFeedback > -1) {
-                notifyListener(ConnectionEvent.CMDFEEDBACK_RECEIVED, readFeedback);
+                notifyListener(LogUnitEvent.CMDFEEDBACK_RECEIVED, readFeedback);
             }
         }else {
             //all the commandos without any Datas transferred
             readFeedback = readValue(Integer.parseInt(commandfeedback));
             setStartTime();
             if (readFeedback  > -1 ) {
-                notifyListener(ConnectionEvent.CMDFEEDBACK_RECEIVED, readFeedback);
+                notifyListener(LogUnitEvent.CMDFEEDBACK_RECEIVED, readFeedback);
             }
         }
 
