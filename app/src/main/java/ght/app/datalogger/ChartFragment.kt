@@ -43,9 +43,8 @@ class ChartFragment : Fragment() {
 
         val data: MutableList<DataEntry> = ArrayList()
 
-        for (entry : String in logData) {
-            if (!entry.contains("value"))
-            data.add(toDataEntry(entry))
+        for (i in 1..logData.size) {
+            data.add(toDataEntry(logData[i]))
         }
 
         if (data.isEmpty()) {
