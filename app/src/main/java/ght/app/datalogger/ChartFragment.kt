@@ -43,7 +43,7 @@ class ChartFragment : Fragment() {
 
         val data: MutableList<DataEntry> = ArrayList()
 
-        for (i in 1..logData.size) {
+        for (i in 1 until logData.size) {
             data.add(toDataEntry(logData[i]))
         }
 
