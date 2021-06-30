@@ -76,28 +76,18 @@ public class UnitHandler implements Serializable{
         if (myUnits.size() > 0) {
 
             try (FileOutputStream fos = context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
-            ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-                oos.writeObject(myUnits);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            ;
-            /*
-            try (OutputStream fos = new FileOutputStream(file);
                  ObjectOutputStream oos = new ObjectOutputStream(fos)) {
 
                 oos.writeObject(myUnits);
-                //PrintOnMonitor.printlnMon("------------------------------------------", PrintOnMonitor.Reason.GENERAL);
-                //PrintOnMonitor.printlnMon("Following Objects got written into file:", PrintOnMonitor.Reason.GENERAL);
+                PrintOnMonitor.printlnMon("------------------------------------------", PrintOnMonitor.Reason.GENERAL);
+                PrintOnMonitor.printlnMon("Following Objects got written into file:", PrintOnMonitor.Reason.GENERAL);
                 for (LoggingUnit oneUnit : myUnits) {
-                    //PrintOnMonitor.printlnMon(oneUnit.getUnitName(), PrintOnMonitor.Reason.GENERAL);
+                    PrintOnMonitor.printlnMon(oneUnit.getUnitName(), PrintOnMonitor.Reason.GENERAL);
                 }
-                //PrintOnMonitor.printlnMon("------------------------------------------", PrintOnMonitor.Reason.GENERAL);
+                PrintOnMonitor.printlnMon("------------------------------------------", PrintOnMonitor.Reason.GENERAL);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        */
         }
     }
 
@@ -107,25 +97,6 @@ public class UnitHandler implements Serializable{
     public void readUnitsOfFile(Context context) throws ExceptionDeserialization {
 
         try (FileInputStream fis = context.openFileInput(FILE_NAME);
-        ObjectInputStream ois = new ObjectInputStream(fis)) {
-            myUnits.clear();
-
-            try {
-                myUnits = (ArrayList<LoggingUnit>) ois.readObject();
-
-                for (LoggingUnit unit : myUnits) {
-                    unit.initUnit();
-                }
-
-            } catch (Exception e) {
-                throw new ExceptionDeserialization();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-/*
-        try (InputStream fis = new FileInputStream(file);
              ObjectInputStream ois = new ObjectInputStream(fis)) {
 
             myUnits.clear();
@@ -136,20 +107,20 @@ public class UnitHandler implements Serializable{
                 throw new ExceptionDeserialization();
             }
 
-            //PrintOnMonitor.printlnMon("------------------------------------------", PrintOnMonitor.Reason.GENERAL);
-            //PrintOnMonitor.printlnMon("Following Objects got read out of the file:", PrintOnMonitor.Reason.GENERAL);
+            PrintOnMonitor.printlnMon("------------------------------------------", PrintOnMonitor.Reason.GENERAL);
+            PrintOnMonitor.printlnMon("Following Objects got read out of the file:", PrintOnMonitor.Reason.GENERAL);
             for (LoggingUnit oneUnit : myUnits) {
-                //PrintOnMonitor.printlnMon(oneUnit.getUnitName(), PrintOnMonitor.Reason.GENERAL);
+                PrintOnMonitor.printlnMon(oneUnit.getUnitName(), PrintOnMonitor.Reason.GENERAL);
                 oneUnit.initUnit();
             }
-            //PrintOnMonitor.printlnMon("------------------------------------------", PrintOnMonitor.Reason.GENERAL);
+            PrintOnMonitor.printlnMon("------------------------------------------", PrintOnMonitor.Reason.GENERAL);
         } catch (FileNotFoundException ed) {
+            throw new ExceptionDeserialization();
+        } catch (StreamCorruptedException ed) {
             throw new ExceptionDeserialization();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
- */
 
     }
 

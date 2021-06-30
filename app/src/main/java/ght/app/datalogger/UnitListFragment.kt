@@ -89,7 +89,7 @@ class UnitListFragment : Fragment(){
         val recyclerView: RecyclerView = view.findViewById(R.id.recycler_view)
 
         val units = model.units.value
-        adapter = units?.let { UnitAdapter(it, onclickInterface as OnClickInterface) }
+        adapter = units?.let { UnitAdapter(it, onclickInterface as OnClickInterface, view) }
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(context)
 

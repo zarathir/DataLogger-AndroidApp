@@ -7,11 +7,14 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.SnapHelper
+import com.google.android.material.snackbar.Snackbar
 import ght.app.datalogger.data.logSystem.LoggingUnit
 import ght.app.datalogger.data.units.UnitArduino
 import ght.app.datalogger.data.units.UnitRaspberry
 
-class UnitAdapter(private var list: MutableList<LoggingUnit>, private var onClickInterface: OnClickInterface)
+class UnitAdapter(private var list: MutableList<LoggingUnit>, private var onClickInterface: OnClickInterface,
+private var view: View)
     : RecyclerView.Adapter<UnitAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -95,5 +98,9 @@ class UnitAdapter(private var list: MutableList<LoggingUnit>, private var onClic
             is UnitRaspberry -> "Raspberry"
             else -> ""
         }
+    }
+
+    private fun makeSnack(view: View, message: String) {
+        Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
     }
 }

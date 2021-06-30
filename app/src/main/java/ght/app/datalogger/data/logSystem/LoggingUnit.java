@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * @version 1.000  04.05.2021
  */
 public abstract class LoggingUnit implements Serializable {
-    private static final long serialVersionID = 1L;
+    private static final long serialVersionUID = 1L;
     private static final int serverPortNumber = 5001;
     private static final long connectionTimeoutDefault_ms = 2000; //timeout in normalmode: 2s
     private static final long connectionTimeoutDebug_ms = 30000; //timeout in debugmode: 30s
@@ -40,7 +40,6 @@ public abstract class LoggingUnit implements Serializable {
     private transient BufferedReader reader;
 
     private transient Thread unitReaderThread;
-    private transient Thread unitConnectionThread;
 
     private transient List<IntfGuiListener> connectionStateListeners;
     private transient List<IntfGuiListener> connectionLostListeners;
@@ -52,9 +51,9 @@ public abstract class LoggingUnit implements Serializable {
     private transient static File logfile = new File(Environment.getExternalStoragePublicDirectory(
             Environment.DIRECTORY_DOCUMENTS)
             + File.separator
-            +"datalog.txt");
+            + "datalog.txt");
 
-    private transient long startTime;
+    private transient long startTime; //Nano-Seconds
 
     //Constructor
     public LoggingUnit(String unitName) {
@@ -62,9 +61,10 @@ public abstract class LoggingUnit implements Serializable {
         initUnit();
     }
 
+
     /**
-     * Methode initalizes an LoggingUnit-Object (by calling the constructor as well as ....
-     * restoring Units by calling readUnitsOfFile on the UnitHandler)
+     * Methode initalizes an LoggingUnit-Object (by calling of constructor
+     * as well as restoring Units by calling readUnitsOfFile on the UnitHandler)
      */
     public void initUnit() {
         this.connected = false;
@@ -74,7 +74,6 @@ public abstract class LoggingUnit implements Serializable {
         this.streamReader = null;
         this.reader = null;
         this.unitReaderThread = null;
-        this.unitConnectionThread = null;
         if (this instanceof UnitArduino) {
             this.unitVendor = EnumUnits.ARDUINO;
         } else if (this instanceof UnitRaspberry) {
@@ -91,7 +90,7 @@ public abstract class LoggingUnit implements Serializable {
 
 
     /**
-     * Methode to get the Unit name
+     * Methode to get the given unit-name
      * @return  unitName (as String)
      */
     public String getUnitName() {
@@ -99,16 +98,16 @@ public abstract class LoggingUnit implements Serializable {
     }
 
     /**
-     * Methode to get the Connectionstate (True= connected / false= disconected)
-     * @return  connected (as boolean)
+     * Methode to get the Connectionstate of this unit (True= connected / false= disconected)
+     * @return  connectionstate (as boolean)
      */
     public boolean isConnected() {
         return connected;
     }
 
     /**
-     * Methode to sets the Connectionstate into the instance variable "connected"
-     * if it has done set also the connectionstate Property to the same value.
+     * Methode to sets the Connectionstate of the given parameter into the instance variable "connected".
+     * it will inform all the Listeners of CONNECTION_STATE with the new connectionstate.
      * @param  connectionState (as boolean)
      */
     protected void setConnection(boolean connectionState) {
@@ -124,15 +123,23 @@ public abstract class LoggingUnit implements Serializable {
      * Methode adds an Element to the Arraylist logDataList
      * @param logLine (as String)
      */
-    private void addLogLine(String logLine) {
+    protected void addLogLine(String logLine) {
         logDataList.add(logLine);
     }
 
     /**
      * Methode clears the whole Arraylist logDataList to make it ready to get new elements
      */
-    private void clearLogDataList() {
+    protected void clearLogDataList() {
         logDataList.clear();
+    }
+
+    /**
+     * Methode gets the size of the Arraylist logDataList
+     * @return size of the ArrayList (as int)
+     */
+    protected int getSizeLogDataList() {
+        return logDataList.size();
     }
 
     /**
@@ -150,21 +157,31 @@ public abstract class LoggingUnit implements Serializable {
     public abstract InetAddress getIpAdress();
 
     /**
-     * Methode to get the connection type of the Unit
+     * Methode to get the connection type of the Unit.
      * @return  connectiontyp WIFI/BLUETOOTH/... (as EnumConnection)
      */
     public abstract EnumConnection getConnectionTyp();
 
     /**
-     * Methode gives out the Timestamp when the last Connectioncheck ping got received
-     * @return  startTime (as long)
+     * Methode to get the Portnumber to connect to the Server
+     * @return serverPortNumber (as Int)
+     */
+    public static int getServerPortNumber() {
+        return serverPortNumber;
+    }
+
+    /**
+     * Methode gives out the Timestamp of when the last
+     * Connectioncheck ping got received.
+     * @return  startTime in nanosecond (as long)
      */
     public long getStartTime() {
         return startTime;
     }
 
     /**
-     * Methode sets the Timestamp to check later how much time has past after the the last Connectioncheck ping got received
+     * Methode sets the Timestamp to check later on of how much time has past
+     * after the the last Connectioncheck ping got received.
      */
     public void setStartTime() {
         this.startTime = System.nanoTime();
@@ -174,14 +191,12 @@ public abstract class LoggingUnit implements Serializable {
      * Methode tries to build up a connection to the Unit
      * @return connectionstate true=connected / false=disconnected (as boolean)
      */
-    /*public boolean connect() throws Exception{
+    public boolean connect() throws Exception{
         if (!isConnected()) {
             //Client Socket erzeugen, incl. Verbindungsanfrage
             try {
-                //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", try to connect to Server at: " + getIpAdress().toString().substring(1), PrintOnMonitor.Reason.CONNECTION);
-                //clientSocket = new Socket(getIpAdress().toString().substring(1), serverPortNumber);
-
-                clientSocket = new Socket(InetAddress.getByName("192.168.0.104"), serverPortNumber);
+                PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", try to connect to Server at: " + getIpAdress().toString().substring(1), PrintOnMonitor.Reason.CONNECTION);
+                clientSocket = new Socket(getIpAdress().toString().substring(1), serverPortNumber);
                 //clientSocket.setKeepAlive(false);
 
                 writer = new PrintWriter(clientSocket.getOutputStream());
@@ -195,7 +210,7 @@ public abstract class LoggingUnit implements Serializable {
             }
 
             if (!clientSocket.isClosed()) {
-                //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", connection established!", PrintOnMonitor.Reason.CONNECTION);
+                PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", connection established!", PrintOnMonitor.Reason.CONNECTION);
                 //start the unitReaderThread
                 unitReaderThread = new Thread(new UnitReader());
                 unitReaderThread.setName("ReaderThreadUnit_" + getUnitName());
@@ -205,19 +220,19 @@ public abstract class LoggingUnit implements Serializable {
             try {
                 Thread.currentThread().sleep(200);
             } catch (IllegalArgumentException ignored) {
-                ;// to prevent Exception: "Not on FX application thread;"
+                // to prevent Exception: "Not on FX application thread;"
             }
 
-            //PrintOnMonitor.printlnMon("Unit: "+ getUnitName() + ", Connectionstate of connection to Server: " + isConnected(), PrintOnMonitor.Reason.CONNECTION);
+            PrintOnMonitor.printlnMon("Unit: "+ getUnitName() + ", Connectionstate of connection to Server: " + isConnected(), PrintOnMonitor.Reason.CONNECTION);
         }
         return isConnected();
-    }*/
+    }
 
     /**
      * Methode disconnects the connection to the Unit
      * @return connectionstate: true=connected / false=disconnected (as boolean)
      */
-    /*public boolean disconnect() {
+    public boolean disconnect() {
         if (isConnected()) {
             try{
                 clientSocket.close();
@@ -225,7 +240,7 @@ public abstract class LoggingUnit implements Serializable {
                 ex.printStackTrace();
             } finally {
                 if (clientSocket.isClosed()) {
-                    //PrintOnMonitor.printlnMon("Thread: " + unitReaderThread.getName() + ", gets interrupted, by disconnecting!", PrintOnMonitor.Reason.THREAD);
+                    PrintOnMonitor.printlnMon("Thread: " + unitReaderThread.getName() + ", gets interrupted, by disconnecting!", PrintOnMonitor.Reason.THREAD);
                     //interrupt the unitReaderThread
                     unitReaderThread.interrupt();
                     try {
@@ -239,29 +254,29 @@ public abstract class LoggingUnit implements Serializable {
             }
         }
         if (!isConnected()) {
-            //PrintOnMonitor.printlnMon("Unit: "+ getUnitName() + ", disconnected!", PrintOnMonitor.Reason.CONNECTION);
+            PrintOnMonitor.printlnMon("Unit: "+ getUnitName() + ", disconnected!", PrintOnMonitor.Reason.CONNECTION);
         } else {
-            //PrintOnMonitor.printlnMon("Unit: "+ getUnitName() + ", Connectionstate of disconnection of Server: " + isConnected(), PrintOnMonitor.Reason.CONNECTION);
+            PrintOnMonitor.printlnMon("Unit: "+ getUnitName() + ", Connectionstate of disconnection of Server: " + isConnected(), PrintOnMonitor.Reason.CONNECTION);
         }
         return isConnected();
-    }*/
+    }
 
     /**
-     * Methode sends a command number to the Unit
+     * Methode sends a command number to the Unit with the socket connection
      * @param commandNo that has to be sent to the unit (as int)
      * @return writer state: true=all allright / false=Error occured or not unit connected (as boolean)
      */
     public boolean sendCommand(int commandNo) {
         if (isConnected()) {
-            //write into Socket
 
+            //write into Socket
             String command = "#" + commandNo;
             writer.println(command);
-            //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", Commando sent to Server: " + command, PrintOnMonitor.Reason.UNITINTERFACE);
+            PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", Commando sent to Server: " + command, PrintOnMonitor.Reason.UNITINTERFACE);
 
             boolean writerError = writer.checkError();
             if (writerError) {
-                //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", Writer set an error: ", PrintOnMonitor.Reason.UNITINTERFACE);
+                PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", Writer set an error: ", PrintOnMonitor.Reason.UNITINTERFACE);
             }
 
             return !writerError;
@@ -273,29 +288,33 @@ public abstract class LoggingUnit implements Serializable {
     /**
      * Methode to get all the connection-interfaces of the requested vendor class
      * @param requestedVendor (as EnumUnits)
-     * @return Arraylist with all the interfaces (as ArrayList<String>)
+     * @return Arraylist that contians all the connection interfaces (as ArrayList<String>)
+     * --> Connection Interfaces are to be named as following: "Intf" + connectiontype (e.g. IntfWifi),
+     *    and the connectiontype should be the same letters as in the EnumConnection.
      */
     public static ArrayList<String> getConnectionInterfaces(EnumUnits requestedVendor) {
         ArrayList<String> myConnections = new ArrayList<>();
 
         Class<?>[] interfaces = null;
-        switch (requestedVendor) {
-            case ARDUINO:
-                Class<UnitArduino> ardClass = UnitArduino.class;
-                interfaces = ardClass.getInterfaces();
-                break;
-            case RASPBERRY:
-                Class<UnitRaspberry> raspClass = UnitRaspberry.class;
-                interfaces = raspClass.getInterfaces();
-                break;
-        }
+        if (requestedVendor != null) {
+            switch (requestedVendor) {
+                case ARDUINO:
+                    Class<UnitArduino> ardClass = UnitArduino.class;
+                    interfaces = ardClass.getInterfaces();
+                    break;
+                case RASPBERRY:
+                    Class<UnitRaspberry> raspClass = UnitRaspberry.class;
+                    interfaces = raspClass.getInterfaces();
+                    break;
+            }
 
-        for (Class<?> oneInterface : interfaces) {
-            if (oneInterface.toString().contains("Intf")) {
-                int interfaceIndex = oneInterface.toString().indexOf("Intf");
-                int stringlength = oneInterface.toString().length();
-                String interfaceName = oneInterface.toString().substring(interfaceIndex+4,stringlength);
-                myConnections.add(interfaceName);
+            for (Class<?> oneInterface : interfaces) {
+                if (oneInterface.toString().contains("Intf")) {
+                    int interfaceIndex = oneInterface.toString().indexOf("Intf");
+                    int stringlength = oneInterface.toString().length();
+                    String interfaceName = oneInterface.toString().substring(interfaceIndex + 4, stringlength);
+                    myConnections.add(interfaceName);
+                }
             }
         }
         return myConnections;
@@ -304,23 +323,25 @@ public abstract class LoggingUnit implements Serializable {
     /**
      * Methode to add a Listener to the List:
      * (connectionStateListener/connectionLostListener/comandReceivedListeners/errorReceivedListeners)
-     * @param gl (GuiListener) of the Interface: IntfGuiListener (as IntfGuiListener)
-     * @param lue (Loggingunit event) event-enum of the Event that shall be added (as LogUnitEvent)
+     * @param gl (GuiListener) of the Interface: IntfGuiListener (as IntfGuiListener), null not allowed!
+     * @param lue (Loggingunit event) event-enum of the Event that shall be added (as LogUnitEvent), null not allowed!
      */
     public void addListener(IntfGuiListener gl, LogUnitEvent lue) {
-        switch (lue) {
-            case CONNECTION_STATE:
-                connectionStateListeners.add(gl);
-                break;
-            case CONNECTION_LOST:
-                connectionLostListeners.add(gl);
-                break;
-            case CMDFEEDBACK_RECEIVED:
-                comandReceivedListeners.add(gl);
-                break;
-            case ERROR_RECEIVED:
-                errorReceivedListeners.add(gl);
-                break;
+        if (gl != null && lue != null) {
+            switch (lue) {
+                case CONNECTION_STATE:
+                    connectionStateListeners.add(gl);
+                    break;
+                case CONNECTION_LOST:
+                    connectionLostListeners.add(gl);
+                    break;
+                case CMDFEEDBACK_RECEIVED:
+                    comandReceivedListeners.add(gl);
+                    break;
+                case ERROR_RECEIVED:
+                    errorReceivedListeners.add(gl);
+                    break;
+            }
         }
     }
 
@@ -328,31 +349,33 @@ public abstract class LoggingUnit implements Serializable {
      * Methode to remove a Listener of the List:
      * (connectionStateListener/connectionLostListener/comandReceivedListeners/errorReceivedListeners),
      * just if an Listener is already added
-     * @param gl (GuiListener) of the Interface: IntfGuiListener (as IntfGuiListener)
-     * @param lue (Loggingunit event) event-enum of the Event that shall be removed (as LogUnitEvent)
+     * @param gl (GuiListener) of the Interface: IntfGuiListener (as IntfGuiListener), null not allowed!
+     * @param lue (Loggingunit event) event-enum of the Event that shall be removed (as LogUnitEvent), null not allowed!
      */
     public void removeListener(IntfGuiListener gl, LogUnitEvent lue) {
-        switch (lue) {
-            case CONNECTION_STATE:
-                if (connectionStateListeners.size()>0) {
-                    connectionStateListeners.remove(gl);
-                }
-                break;
-            case CONNECTION_LOST:
-                if (connectionLostListeners.size()>0) {
-                    connectionLostListeners.remove(gl);
-                }
-                break;
-            case CMDFEEDBACK_RECEIVED:
-                if (comandReceivedListeners.size()>0) {
-                    comandReceivedListeners.remove(gl);
-                }
-                break;
-            case ERROR_RECEIVED:
-                if (errorReceivedListeners.size()>0) {
-                    errorReceivedListeners.remove(gl);
-                }
-                break;
+        if (gl != null && lue != null) {
+            switch (lue) {
+                case CONNECTION_STATE:
+                    if (connectionStateListeners.size() > 0) {
+                        connectionStateListeners.remove(gl);
+                    }
+                    break;
+                case CONNECTION_LOST:
+                    if (connectionLostListeners.size() > 0) {
+                        connectionLostListeners.remove(gl);
+                    }
+                    break;
+                case CMDFEEDBACK_RECEIVED:
+                    if (comandReceivedListeners.size() > 0) {
+                        comandReceivedListeners.remove(gl);
+                    }
+                    break;
+                case ERROR_RECEIVED:
+                    if (errorReceivedListeners.size() > 0) {
+                        errorReceivedListeners.remove(gl);
+                    }
+                    break;
+            }
         }
     }
 
@@ -360,50 +383,38 @@ public abstract class LoggingUnit implements Serializable {
      * Methode to notify all the Listeners of the List:
      * (connectionStateListener/connectionLostListener/comandReceivedListeners/errorReceivedListeners).
      * The certain Listener will get the Event itsself (as Enum) the value that has been given and the UnitName (as String)
-     * @param lue (Loggingunit event) event-enum of the Event that shall be given to the Listeners (as LogUnitEvent);
+     * @param lue (Loggingunit event) event-enum of the Event that shall be given to the Listeners (as LogUnitEvent), null not allowed!
      * @param value the value itsself (as int);
      */
-    private void notifyListener(LogUnitEvent lue, int value) {
-        switch (lue) {
-            case CONNECTION_STATE:
-                connectionStateListeners.forEach((cl) -> {
-                    //all connectionStateListeners gets the given Event.
-                    cl.loggingUnitEvent(lue, value, getUnitName());
-                });
-                break;
-            case CONNECTION_LOST:
-                connectionLostListeners.forEach((cl) -> {
-                    //all connectionLostListeners gets the given Event.
-                    cl.loggingUnitEvent(lue, value, getUnitName());
-                });
-                break;
-            case CMDFEEDBACK_RECEIVED:
-                comandReceivedListeners.forEach((cl) -> {
-                    //all comandReceivedListeners gets the given Event.
-                    cl.loggingUnitEvent(lue, value, getUnitName());
-                });
-                break;
-            case ERROR_RECEIVED:
-                errorReceivedListeners.forEach((cl) -> {
-                    //all errorReceivedListeners gets the given Event.
-                    cl.loggingUnitEvent(lue, value, getUnitName());
-                });
-                break;
+    protected void notifyListener(LogUnitEvent lue, int value) {
+        if (lue != null) {
+            switch (lue) {
+                case CONNECTION_STATE:
+                    connectionStateListeners.forEach((cl) -> {
+                        //all connectionStateListeners gets the given Event.
+                        cl.loggingUnitEvent(lue, value, getUnitName());
+                    });
+                    break;
+                case CONNECTION_LOST:
+                    connectionLostListeners.forEach((cl) -> {
+                        //all connectionLostListeners gets the given Event.
+                        cl.loggingUnitEvent(lue, value, getUnitName());
+                    });
+                    break;
+                case CMDFEEDBACK_RECEIVED:
+                    comandReceivedListeners.forEach((cl) -> {
+                        //all comandReceivedListeners gets the given Event.
+                        cl.loggingUnitEvent(lue, value, getUnitName());
+                    });
+                    break;
+                case ERROR_RECEIVED:
+                    errorReceivedListeners.forEach((cl) -> {
+                        //all errorReceivedListeners gets the given Event.
+                        cl.loggingUnitEvent(lue, value, getUnitName());
+                    });
+                    break;
+            }
         }
-    }
-
-    public void connect() {
-        notifyListener(LogUnitEvent.ERROR_RECEIVED, 127); // eng_gam nur testweise implementiert, macht keinen Sinn hier
-        //start the unitConnectionThread
-        unitConnectionThread = new Thread(new Connection());
-        unitConnectionThread.setName("ConnectionThreadUnit_" + getUnitName());
-        unitConnectionThread.start();
-    }
-
-    public void disconnect() {
-        //interrupt the unitConnectionThread
-        unitConnectionThread.interrupt();
-
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -427,7 +438,7 @@ public abstract class LoggingUnit implements Serializable {
 
         @Override
         public void run() {
-            //PrintOnMonitor.printlnMon("Thread: " + Thread.currentThread().getName() + ", is running!", PrintOnMonitor.Reason.THREAD);
+            PrintOnMonitor.printlnMon("Thread: " + Thread.currentThread().getName() + ", is running!", PrintOnMonitor.Reason.THREAD);
             setConnection(!clientSocket.isClosed());
             while (!Thread.currentThread().isInterrupted()) {
                 try {
@@ -437,13 +448,16 @@ public abstract class LoggingUnit implements Serializable {
                 }catch (IOException e) {
                     e.printStackTrace();
                 }
-/*
+
                 //check if timeout of connectioncheck ping has passt since the last ping of server (longer timeout while debugging)
+                /*
                 boolean isDebug = java.lang.management.ManagementFactory.getRuntimeMXBean().
                         getInputArguments().toString().indexOf("jdwp") >= 0;
-*/
+
+                 */
+                boolean isDebug = false;
                 //set timeout for checking connection (debugmode= 30s / normalmode= 2s)
-                long localTimeout= connectionTimeoutDefault_ms;
+                long localTimeout= isDebug ? connectionTimeoutDebug_ms : connectionTimeoutDefault_ms;
 
                 if (TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - getStartTime()) > localTimeout) {
                     //more then 2s has past since the last connectioncheck ping --> disconnect
@@ -453,7 +467,7 @@ public abstract class LoggingUnit implements Serializable {
                         ex.printStackTrace();
                     } finally {
                         if (clientSocket.isClosed()) {
-                            //PrintOnMonitor.printlnMon("Thread: " + unitReaderThread.getName() + ", gets interrupted, by connection lost!", PrintOnMonitor.Reason.THREAD);
+                            PrintOnMonitor.printlnMon("Thread: " + unitReaderThread.getName() + ", gets interrupted, by connection lost!", PrintOnMonitor.Reason.THREAD);
                             unitReaderThread.interrupt();
                             writer = null;
                             reader = null;
@@ -499,11 +513,11 @@ public abstract class LoggingUnit implements Serializable {
 
         String commandfeedback = readCommandFeedback();
         if (commandfeedback.equals("")) {
-            ; //ignored
+            //ignored
         }else if (commandfeedback.equals("*")) {
             //Connectioncheck
             setStartTime();
-            //PrintOnMonitor.printMon("*", PrintOnMonitor.Reason.CONNECTIONCHECK);
+            PrintOnMonitor.printMon("*", PrintOnMonitor.Reason.CONNECTIONCHECK);
         }else if (commandfeedback.equals("E")) {
             //Errors of Unit
             //readFeedback = readError(Integer.parseInt(commandfeedback));
@@ -543,13 +557,13 @@ public abstract class LoggingUnit implements Serializable {
                 serverFeedback = reader.readLine();
                 if (!serverFeedback.equals("*") && !serverFeedback.equals("")) {
                     command = serverFeedback.substring(1);
-                    //PrintOnMonitor.printlnMon("Unit: " + getUnitName() + ", Commando-Feedback of Server: " + command, PrintOnMonitor.Reason.UNITINTERFACE);
+                    PrintOnMonitor.printlnMon("Unit: " + getUnitName() + ", Commando-Feedback of Server: " + command, PrintOnMonitor.Reason.UNITINTERFACE);
                 } else {
                     command = serverFeedback;
                 }
             } catch (IOException ex) {
                 ex.printStackTrace();
-                //PrintOnMonitor.printMon(null, PrintOnMonitor.Reason.UNITINTERFACE);
+                PrintOnMonitor.printMon(null, PrintOnMonitor.Reason.UNITINTERFACE);
             } finally {
                 return command;
             }
@@ -579,30 +593,30 @@ public abstract class LoggingUnit implements Serializable {
                     }
                 } catch (IOException ex) {
                     ex.printStackTrace();
-                    //PrintOnMonitor.printMon(null, PrintOnMonitor.Reason.UNITINTERFACE);
+                    PrintOnMonitor.printMon(null, PrintOnMonitor.Reason.UNITINTERFACE);
                     break;
                 }
 
                 value = serverFeedback;
                 if (value.equals("")) {
-                    ; //ignored
+                    //ignored
                 }else if (value.equals("*")) {
                     //Connectioncheck
                     setStartTime();
-                    //PrintOnMonitor.printMon("*", PrintOnMonitor.Reason.CONNECTIONCHECK);
+                    PrintOnMonitor.printMon("*", PrintOnMonitor.Reason.CONNECTIONCHECK);
                 }else if (value.equals("0")) {
                     //Commandfeedback value = false
-                    //PrintOnMonitor.printMon("; Value: " + value, PrintOnMonitor.Reason.UNITINTERFACE);
+                    PrintOnMonitor.printMon("; Value: " + value, PrintOnMonitor.Reason.UNITINTERFACE);
                 }else if (value.equals("1")) {
                     //Commandfeedback value = true
-                    //PrintOnMonitor.printMon("; Value: " + value, PrintOnMonitor.Reason.UNITINTERFACE);
+                    PrintOnMonitor.printMon("; Value: " + value, PrintOnMonitor.Reason.UNITINTERFACE);
                 }else if (value.equals("#")) {
                     //Protocolendline
-                    //PrintOnMonitor.printMon("; end of Protocol reached!", PrintOnMonitor.Reason.UNITINTERFACE);
-                    //PrintOnMonitor.printMon(null, PrintOnMonitor.Reason.UNITINTERFACE);
+                    PrintOnMonitor.printMon("; end of Protocol reached!", PrintOnMonitor.Reason.UNITINTERFACE);
+                    PrintOnMonitor.printMon(null, PrintOnMonitor.Reason.UNITINTERFACE);
                     result = commandNo;
                 } else {
-                    //PrintOnMonitor.printMon("; not valid: " + value, PrintOnMonitor.Reason.UNITINTERFACE);
+                    PrintOnMonitor.printMon("; not valid: " + value, PrintOnMonitor.Reason.UNITINTERFACE);
                 }
             }
         }
@@ -633,15 +647,15 @@ public abstract class LoggingUnit implements Serializable {
 
         //read out the datas ans write it into the Loggingfile and the ArrayList logDataList
         if (isConnected()) {
-            //PrintOnMonitor.printlnMon("; reading Loggdata of Unit (Encoding: "+ streamReader.getEncoding() +").", PrintOnMonitor.Reason.UNITINTERFACE);
+            PrintOnMonitor.printlnMon("; reading Loggdata of Unit (Encoding: "+ streamReader.getEncoding() +").", PrintOnMonitor.Reason.UNITINTERFACE);
             String line="";
 
-            //PrintOnMonitor.printMon("Unit: " + getUnitName()  + ", String got read: ", PrintOnMonitor.Reason.UNITINTERFACE);
+            PrintOnMonitor.printMon("Unit: " + getUnitName()  + ", String got read: ", PrintOnMonitor.Reason.UNITINTERFACE);
             while (!finishedRead) {
                 try {
                     //read command feedback
                     line = reader.readLine();
-                    //PrintOnMonitor.printMon(line + " ", PrintOnMonitor.Reason.UNITINTERFACE);
+                    PrintOnMonitor.printMon(line + " ", PrintOnMonitor.Reason.UNITINTERFACE);
 
                     if (line == null || !reader.ready()) {
                         if (line.equals("#")) {
@@ -656,11 +670,11 @@ public abstract class LoggingUnit implements Serializable {
                 if (line != null) {
                     value = line;
                     if (value.equals("")) {
-                        ; //ignored
+                        //ignored
                     } else if (value.equals("#")) {
                         //Protocolendline
-                        //PrintOnMonitor.printMon("; end of Protocol reached!", PrintOnMonitor.Reason.UNITINTERFACE);
-                        //PrintOnMonitor.printMon(null, PrintOnMonitor.Reason.UNITINTERFACE);
+                        PrintOnMonitor.printMon("; end of Protocol reached!", PrintOnMonitor.Reason.UNITINTERFACE);
+                        PrintOnMonitor.printMon(null, PrintOnMonitor.Reason.UNITINTERFACE);
                         finishedRead = true;
                         result = commandNo;
                     } else {
@@ -680,15 +694,6 @@ public abstract class LoggingUnit implements Serializable {
      * @param receivedLogData (as String)
      */
     private void writeDatasIntoLoggingFile(String receivedLogData) {
-
-        try (FileWriter fw = new FileWriter(LoggingUnit.logfile, true)) {
-            fw.write(receivedLogData);
-            fw.write("\r\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        /*
         // Append flag is set to true
         try (FileWriter fw = new FileWriter(LoggingUnit.logfile, true)) {
             fw.write(receivedLogData);
@@ -696,108 +701,5 @@ public abstract class LoggingUnit implements Serializable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-         */
     }
-
-
-    //------------------------------------------------------------------------------------------------------------------
-
-    public class Connection implements Runnable{
-
-        @Override
-        public void run() {
-            try {
-                connectUnit();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            while (!Thread.currentThread().isInterrupted()) {
-                ;
-            }
-            disconnectUnit();
-        }
-
-        /**
-         * Methode tries to build up a connection to the Unit
-         * @return connectionstate true=connected / false=disconnected (as boolean)
-         */
-        public boolean connectUnit() throws Exception{
-            if (!isConnected()) {
-                //Client Socket erzeugen, incl. Verbindungsanfrage
-                try {
-                    //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", try to connect to Server at: " + getIpAdress().toString().substring(1), PrintOnMonitor.Reason.CONNECTION);
-                    clientSocket = new Socket(getIpAdress().toString().substring(1), serverPortNumber);
-
-                    //clientSocket = new Socket(InetAddress.getByName("192.168.0.104"), serverPortNumber);
-                    //clientSocket.setKeepAlive(false);
-
-                    writer = new PrintWriter(clientSocket.getOutputStream());
-
-                    streamReader = new InputStreamReader(clientSocket.getInputStream());
-                    reader = new BufferedReader(streamReader);
-
-                } catch (ConnectException e) {
-                    //no Connection could have been established
-                    throw e;
-                }
-
-                if (!clientSocket.isClosed()) {
-                    //PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", connection established!", PrintOnMonitor.Reason.CONNECTION);
-                    //start the unitReaderThread
-                    unitReaderThread = new Thread(new LoggingUnit.UnitReader());
-                    unitReaderThread.setName("ReaderThreadUnit_" + getUnitName());
-                    unitReaderThread.start();
-                }
-
-                try {
-                    Thread.currentThread().sleep(200);
-                } catch (IllegalArgumentException ignored) {
-                    ;// to prevent Exception: "Not on FX application thread;"
-                }
-
-                //PrintOnMonitor.printlnMon("Unit: "+ getUnitName() + ", Connectionstate of connection to Server: " + isConnected(), PrintOnMonitor.Reason.CONNECTION);
-            }
-            return isConnected();
-        }
-
-        /**
-         * Methode disconnects the connection to the Unit
-         * @return connectionstate: true=connected / false=disconnected (as boolean)
-         */
-        public boolean disconnectUnit() {
-            if (isConnected()) {
-                try{
-                    clientSocket.close();
-                }catch(IOException ex){
-                    ex.printStackTrace();
-                } finally {
-                    if (clientSocket.isClosed()) {
-                        //PrintOnMonitor.printlnMon("Thread: " + unitReaderThread.getName() + ", gets interrupted, by disconnecting!", PrintOnMonitor.Reason.THREAD);
-                        //interrupt the unitReaderThread
-                        unitReaderThread.interrupt();
-                        try {
-                            unitReaderThread.join();
-                            writer = null;
-                            reader = null;
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
-            if (!isConnected()) {
-                //PrintOnMonitor.printlnMon("Unit: "+ getUnitName() + ", disconnected!", PrintOnMonitor.Reason.CONNECTION);
-            } else {
-                //PrintOnMonitor.printlnMon("Unit: "+ getUnitName() + ", Connectionstate of disconnection of Server: " + isConnected(), PrintOnMonitor.Reason.CONNECTION);
-            }
-            return isConnected();
-        }
-
-    }
-
-
-
 }
-
