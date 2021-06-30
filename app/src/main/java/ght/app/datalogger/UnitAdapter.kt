@@ -1,5 +1,6 @@
 package ght.app.datalogger
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -44,10 +45,12 @@ class UnitAdapter(private var list: MutableList<LoggingUnit>, private var onClic
                 onClickInterface.setClick(holder.absoluteAdapterPosition,
                     OnClickInterface.Click.CONNECT)
                 holder.btnConnect.text = "Disconnect"
+                holder.btnConnect.setBackgroundColor(Color.rgb(115, 117, 251))
             } else {
                 onClickInterface.setClick(holder.absoluteAdapterPosition,
                     OnClickInterface.Click.DISCONNECT)
                 holder.btnConnect.text = "Connect"
+                holder.btnConnect.setBackgroundColor(Color.rgb(98, 0, 238))
             }
         }
 

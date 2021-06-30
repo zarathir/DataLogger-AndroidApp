@@ -13,7 +13,7 @@
         <EditText
             android:id="@+id/editTextName"
             android:layout_width="match_parent"
-            android:layout_height="38dp"
+            android:layout_height="60dp"
             android:editable="true"
             android:ems="10"
             android:hint="@string/name"
@@ -22,7 +22,7 @@
         <EditText
             android:id="@+id/editTextIpAddress"
             android:layout_width="match_parent"
-            android:layout_height="38dp"
+            android:layout_height="60dp"
             android:editable="true"
             android:ems="10"
             android:hint="@string/ip_address"
@@ -31,14 +31,14 @@
         <Spinner
             android:id="@+id/dropdown_unit_type"
             android:layout_width="match_parent"
-            android:layout_height="38dp"
+            android:layout_height="60dp"
             android:spinnerMode="dropdown" />
 
         <Spinner
             android:id="@+id/dropdown_interface_type"
             android:layout_width="match_parent"
-            android:layout_height="38dp"
-            android:spinnerMode="dropdown"/>
+            android:layout_height="60dp"
+            android:spinnerMode="dropdown" />
 
         <Button
             android:id="@+id/button_add"

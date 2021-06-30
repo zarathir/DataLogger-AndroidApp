@@ -1,22 +1,20 @@
 package ght.app.datalogger
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
-import android.provider.DocumentsContract
-import android.view.ContextMenu
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
+import ght.app.datalogger.data.logSystem.IntfGuiListener
+import ght.app.datalogger.data.logSystem.IntfGuiListener.LogUnitEvent
+import ght.app.datalogger.data.logSystem.LoggingUnit
 import ght.app.datalogger.databinding.ActivityMainBinding
 
 
@@ -25,6 +23,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private val model: UnitViewModel by viewModels()
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

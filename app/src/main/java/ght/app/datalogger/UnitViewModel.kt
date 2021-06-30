@@ -5,6 +5,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ght.app.datalogger.data.logSystem.EnumConnection
+import ght.app.datalogger.data.logSystem.IntfGuiListener
 import ght.app.datalogger.data.logSystem.LoggingUnit
 import ght.app.datalogger.data.logSystem.UnitHandler
 import kotlinx.coroutines.Dispatchers
@@ -119,5 +121,10 @@ class UnitViewModel : ViewModel() {
         } else {
             "Unit is not connected"
         }
+    }
+
+    fun addListener(gl: IntfGuiListener, lue: IntfGuiListener.LogUnitEvent) {  // eng_gam testweise implementiert, Achtung, es sollte noch augewertet werden um welche Unit es sich handelt
+        val unit = unitHandler.getCertainUnit("RobotDyn Wifi mit Poti")
+        unit.addListener(gl, lue)
     }
 }

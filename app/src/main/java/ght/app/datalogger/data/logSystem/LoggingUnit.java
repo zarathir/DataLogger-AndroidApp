@@ -393,6 +393,7 @@ public abstract class LoggingUnit implements Serializable {
     }
 
     public void connect() {
+        notifyListener(LogUnitEvent.ERROR_RECEIVED, 127); // eng_gam nur testweise implementiert, macht keinen Sinn hier
         //start the unitConnectionThread
         unitConnectionThread = new Thread(new Connection());
         unitConnectionThread.setName("ConnectionThreadUnit_" + getUnitName());

@@ -2,6 +2,7 @@ package ght.app.datalogger
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,8 +16,10 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
 import ght.app.datalogger.data.logSystem.EnumConnection
 import ght.app.datalogger.data.logSystem.EnumUnits
+import ght.app.datalogger.data.logSystem.IntfGuiListener
 import ght.app.datalogger.data.units.UnitArduino
 import ght.app.datalogger.data.units.UnitRaspberry
+import ght.app.datalogger.data.logSystem.PrintOnMonitor
 import ght.app.datalogger.databinding.FragmentAddUnitBinding
 import java.net.InetAddress
 
@@ -24,14 +27,14 @@ import java.net.InetAddress
  * This [Fragment] is for creating new Units and adding them
  * to the [UnitViewModel].
  */
-class AddUnitFragment : Fragment() {
-
+class AddUnitFragment : Fragment(), IntfGuiListener { // eng_gam Inerface ergänzt
     private var _binding: FragmentAddUnitBinding? = null
 
     private val binding get() = _binding!!
 
     private lateinit var selectedUnitType : EnumUnits
     private lateinit var selectedIntfType : EnumConnection
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -113,6 +116,7 @@ class AddUnitFragment : Fragment() {
                 EnumUnits.RASPBERRY -> if (model.addUnit(UnitRaspberry(binding.editTextName.text.toString(),
                     InetAddress.getByName(binding.editTextIpAddress.text.toString()),
                     selectedIntfType))) {
+                    model.addListener(this, IntfGuiListener.LogUnitEvent.ERROR_RECEIVED);
                     findNavController().navigate(R.id.action_addUnitFragment_to_FirstFragment)
                 } else {
                     makeSnack(view)
@@ -121,6 +125,7 @@ class AddUnitFragment : Fragment() {
                 EnumUnits.ARDUINO -> if (model.addUnit(UnitArduino(binding.editTextName.text.toString(),
                     InetAddress.getByName(binding.editTextIpAddress.text.toString()),
                     selectedIntfType))) {
+                    model.addListener(this, IntfGuiListener.LogUnitEvent.ERROR_RECEIVED);
                     findNavController().navigate(R.id.action_addUnitFragment_to_FirstFragment)
                 } else {
                     makeSnack(view)
@@ -151,5 +156,26 @@ class AddUnitFragment : Fragment() {
         )
 
         binding.editTextIpAddress.clearFocus()
+    }
+
+    override fun loggingUnitEvent(lue: IntfGuiListener.LogUnitEvent, value: Int, unitName: String) { // eng_gam testweise implementiert, Achtung, es sollte noch ergänzt werden was in welche Fall passieren soll.
+        //Platform.runLater(Runnable {
+        when (lue) {
+            IntfGuiListener.LogUnitEvent.CONNECTION_STATE -> {
+                Log.d("1","Listener CONNECTION_STATE got triggered!")
+                PrintOnMonitor.printlnMon("Listener: " + lue.toString() + " got triggerd with Value: " + value + " , and UnitName: " + unitName, PrintOnMonitor.Reason.LISTENER);
+            }
+            IntfGuiListener.LogUnitEvent.CONNECTION_LOST -> {
+                Log.d("1","Listener CONNECTION_LOST got triggered!")
+            }
+            IntfGuiListener.LogUnitEvent.CMDFEEDBACK_RECEIVED -> {
+                Log.d("1","Listener CMDFEEDBACK_RECEIVED got triggered!")
+            }
+            IntfGuiListener.LogUnitEvent.ERROR_RECEIVED -> {
+                //Log.d("1","Listener ERROR_RECEIVED got triggered!")
+                PrintOnMonitor.printlnMon("Listener: " + lue.toString() + " got triggerd with Value: " + value + " , and UnitName: " + unitName, PrintOnMonitor.Reason.LISTENER);
+            }
+        }
+        //})
     }
 }
