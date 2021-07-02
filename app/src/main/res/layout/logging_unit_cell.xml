@@ -11,7 +11,6 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:clickable="true"
         android:orientation="vertical"
         android:paddingTop="10dp"
         android:paddingBottom="10dp"
@@ -24,18 +23,41 @@
             android:orientation="horizontal">
 
             <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/unit_name"
+                android:textSize="18sp" />
+
+            <TextView
+                android:text="@string/unit_type"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="18sp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
                 android:id="@+id/unit_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="16sp"/>
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/unit_type"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="16sp"/>
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
         </LinearLayout>
 
@@ -46,6 +68,8 @@
             android:layout_weight="1"
             android:textSize="16sp"/>
 
+
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -54,17 +78,35 @@
             <Button
                 android:id="@+id/connect_button"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:insetLeft="4dp"
+                android:layout_height="match_parent"
+                android:insetLeft="2dp"
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
                 android:text="@string/connect_button"
                 android:textSize="12sp" />
 
             <Button
-                android:id="@+id/command_button_1"
+                android:id="@+id/remove_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:insetLeft="2dp"
+                android:textAlignment="center"
+                android:paddingLeft="24dp"
+                android:paddingRight="24dp"
+                android:drawableLeft="@android:drawable/ic_menu_delete" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/command_button_1"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
                 android:insetLeft="2dp"
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
@@ -74,7 +116,7 @@
             <Button
                 android:id="@+id/command_button_2"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:insetLeft="2dp"
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
@@ -84,47 +126,25 @@
             <Button
                 android:id="@+id/command_button_3"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:insetLeft="2dp"
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
                 android:text="@string/command3_button"
                 android:textSize="12sp" />
 
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
             <Button
                 android:id="@+id/trendview_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/show_trend"
-                android:textAlignment="center"
                 android:insetLeft="2dp"
+                android:drawableLeft="@android:drawable/ic_menu_gallery"
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
-                android:drawableLeft="@android:drawable/ic_menu_zoom" />
+                android:textAlignment="center" />
 
-            <Button
-                android:id="@+id/remove_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/remove_unit"
-                android:textAlignment="center"
-                android:insetLeft="2dp"
-                android:paddingLeft="24dp"
-                android:paddingRight="24dp"
-                android:drawableLeft="@android:drawable/btn_dialog"/>
 
         </LinearLayout>
-
-
-
-
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

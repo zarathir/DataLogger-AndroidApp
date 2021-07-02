@@ -61,6 +61,9 @@ class UnitListFragment : Fragment(), IntfGuiListener {
                             this@UnitListFragment,
                             IntfGuiListener.LogUnitEvent.CONNECTION_STATE,
                             unitName)
+                        if (unit.isConnected) {
+                            unit.disconnect()
+                        }
                         model.removeUnit(unit)
                         adapter!!.notifyItemRemoved(pos)
                     }
@@ -73,6 +76,7 @@ class UnitListFragment : Fragment(), IntfGuiListener {
                     }
 
                     EventInterface.Click.CONNECT -> {
+                        makeSnack(view, "Versuche zu verbinden...")
                         makeSnack(view, model.connectUnit(unitName))
                         model.sendCommand(2, unitName)
                         adapter!!.notifyItemChanged(pos)
@@ -138,7 +142,6 @@ class UnitListFragment : Fragment(), IntfGuiListener {
         binding.fab.setOnClickListener {
             findNavController().navigate(R.id.action_FirstFragment_to_addUnitFragment)
         }
-
     }
 
     override fun onDestroyView() {
@@ -167,10 +170,12 @@ class UnitListFragment : Fragment(), IntfGuiListener {
                         this@UnitListFragment,
                         IntfGuiListener.LogUnitEvent.CONNECTION_LOST,
                         unitName)
-                    Snackbar.make(
-                        requireView(),
-                        "Unit $unitName hat die Verbindung verloren",
-                        Snackbar.LENGTH_SHORT).show()
+                    this.view?.let {
+                        Snackbar.make(
+                            it,
+                            "Unit $unitName hat die Verbindung verloren",
+                            Snackbar.LENGTH_SHORT).show()
+                    }
                 }
                 Log.d("1","Listener CONNECTION_LOST got triggered!")
             }

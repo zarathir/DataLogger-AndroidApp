@@ -41,16 +41,14 @@ class AddUnitFragment : Fragment() {
 
         _binding = FragmentAddUnitBinding.inflate(inflater, container, false)
         return binding.root
-
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val model: UnitViewModel by activityViewModels()
-        selectedUnitType = EnumUnits.RASPBERRY
+        selectedUnitType = EnumUnits.ARDUINO
         selectedIntfType = EnumConnection.WIFI
-
 
         val spinnerUnits : Spinner = view.findViewById(R.id.dropdown_unit_type)
 
@@ -71,8 +69,8 @@ class AddUnitFragment : Fragment() {
                 id: Long
             ) {
                 when(position) {
-                    0 -> selectedUnitType = EnumUnits.RASPBERRY
-                    1 -> selectedUnitType = EnumUnits.ARDUINO
+                    0 -> selectedUnitType = EnumUnits.ARDUINO
+                    1 -> selectedUnitType = EnumUnits.RASPBERRY
                 }
             }
 
@@ -105,7 +103,6 @@ class AddUnitFragment : Fragment() {
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
-
         }
 
         binding.buttonAdd.setOnClickListener {
