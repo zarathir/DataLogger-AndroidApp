@@ -1,16 +1,12 @@
 package ght.app.datalogger
 
 import android.content.Context
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import ght.app.datalogger.data.logSystem.EnumConnection
-import ght.app.datalogger.data.logSystem.IntfGuiListener
-import ght.app.datalogger.data.logSystem.LoggingUnit
-import ght.app.datalogger.data.logSystem.UnitHandler
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.google.android.material.snackbar.Snackbar
+import ght.app.datalogger.data.logSystem.*
 import java.lang.Exception
 import kotlin.collections.ArrayList
 
@@ -73,29 +69,34 @@ class UnitViewModel : ViewModel() {
         unitHandler.writeUnitsIntoFile(context)
     }
 
-    fun restoreUnits(context: Context) {
-        unitHandler.readUnitsOfFile(context)
-        units.value = unitHandler.unitArrayList
+    fun restoreUnits(context: Context) : String {
+        return try {
+            unitHandler.readUnitsOfFile(context)
+            units.value = unitHandler.unitArrayList
+            "Units erfolgreich geladen"
+        } catch (e: Exception) {
+            "Units konnten nicht geladen werden"
+        }
     }
 
     fun connectUnit(unitName: String): String {
         val unit = unitHandler.getCertainUnit(unitName)
-        unit.connect()
-        Thread.sleep(500)
-        return if (unit.isConnected) {
-            "Unit connected"
-        } else {
-            "Could not connect"
+        return try {
+            unit.connect()
+            "Unit $unitName erfolgreich verbunden"
+        } catch (e: Exception) {
+            "Unit $unitName konnte nicht verbunden werden"
         }
     }
 
     fun disconnectUnit(unitName: String): String {
         val unit = unitHandler.getCertainUnit(unitName)
         unit.disconnect()
-        return if (!unit.isConnected) {
-            "Could not disconnect unit"
+        //Thread.sleep(200)
+        return if (unit.isConnected) {
+            "Unit $unitName konnte nicht getrennt werden"
         } else {
-            "Unit disconnected"
+            "Unit $unitName erfolgreich getrennt"
         }
     }
 
@@ -106,25 +107,31 @@ class UnitViewModel : ViewModel() {
             when(command) {
                 1 -> {
                     unit.sendCommand(123)
-                    "Command 1 sent..."
+                    "Kommando 1 gesendet..."
                 }
                 2 -> {
                     unit.sendCommand(2)
-                    "Command 2 sent..."
+                    "Kommando 2 gesendet..."
                 }
                 3 -> {
                     unit.sendCommand(3)
-                    "Command 3 sent..."
+                    "Kommando 3 gesendet..."
                 }
-                else -> "Could not send command"
+                else -> "Kommando konnte nicht abgesetzt werden"
             }
         } else {
-            "Unit is not connected"
+            "Unit $unitName ist nicht verbunden"
         }
     }
 
-    fun addListener(gl: IntfGuiListener, lue: IntfGuiListener.LogUnitEvent) {  // eng_gam testweise implementiert, Achtung, es sollte noch augewertet werden um welche Unit es sich handelt
-        val unit = unitHandler.getCertainUnit("RobotDyn Wifi mit Poti")
+    fun addListener(gl: IntfGuiListener, lue: IntfGuiListener.LogUnitEvent, unitName: String) {
+        val unit = unitHandler.getCertainUnit(unitName)
         unit.addListener(gl, lue)
     }
+
+    fun removeListener(gl: IntfGuiListener, lue: IntfGuiListener.LogUnitEvent, unitName: String) {
+        val unit = unitHandler.getCertainUnit(unitName)
+        unit.removeListener(gl, lue)
+    }
+
 }

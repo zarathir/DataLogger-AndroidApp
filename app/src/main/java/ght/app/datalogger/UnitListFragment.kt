@@ -1,10 +1,12 @@
 package ght.app.datalogger
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.findNavController
@@ -12,13 +14,15 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import ght.app.datalogger.data.logSystem.IntfGuiListener
 import ght.app.datalogger.data.logSystem.LoggingUnit
+import ght.app.datalogger.data.logSystem.PrintOnMonitor
 import ght.app.datalogger.databinding.FragmentUnitListBinding
 
 /**
  * [Fragment] to display the units in a view and perform actions on each unit
  */
-class UnitListFragment : Fragment(){
+class UnitListFragment : Fragment(), IntfGuiListener {
 
     private var _binding: FragmentUnitListBinding? = null
 
@@ -26,13 +30,14 @@ class UnitListFragment : Fragment(){
     // onDestroyView.
     private val binding get() = _binding!!
 
+    val model: UnitViewModel by activityViewModels()
     private var adapter: UnitAdapter? = null
-    private var onclickInterface: OnClickInterface? = null
+    private var onclickInterface: EventInterface? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         _binding = FragmentUnitListBinding.inflate(inflater, container, false)
         return binding.root
@@ -42,44 +47,75 @@ class UnitListFragment : Fragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val model: UnitViewModel by activityViewModels()
 
-        onclickInterface = object : OnClickInterface {
-            override fun setClick(pos: Int, source: OnClickInterface.Click) {
+
+        onclickInterface = object : EventInterface {
+            override fun setClick(pos: Int, source: EventInterface.Click) {
 
                 val unit = model.units.value?.get(pos)
                 val unitName = unit!!.unitName
 
                 when (source) {
-                    OnClickInterface.Click.REMOVE -> {
+                    EventInterface.Click.REMOVE -> {
+                        model.removeListener(
+                            this@UnitListFragment,
+                            IntfGuiListener.LogUnitEvent.CONNECTION_STATE,
+                            unitName)
                         model.removeUnit(unit)
                         adapter!!.notifyItemRemoved(pos)
                     }
 
-                    OnClickInterface.Click.TREND -> {
+                    EventInterface.Click.TREND -> {
                         model.setActiveUnit(unitName)
                         view.findNavController().navigate(
                         R.id.action_FirstFragment_to_SecondFragment
                         )
                     }
 
-                    OnClickInterface.Click.CONNECT -> {
+                    EventInterface.Click.CONNECT -> {
                         makeSnack(view, model.connectUnit(unitName))
+                        model.sendCommand(2, unitName)
+                        adapter!!.notifyItemChanged(pos)
+                        model.addListener(
+                            this@UnitListFragment,
+                            IntfGuiListener.LogUnitEvent.CONNECTION_LOST,
+                            unitName)
+                        model.addListener(
+                            this@UnitListFragment,
+                            IntfGuiListener.LogUnitEvent.CMDFEEDBACK_RECEIVED,
+                            unitName)
+                        model.addListener(
+                            this@UnitListFragment,
+                            IntfGuiListener.LogUnitEvent.ERROR_RECEIVED,
+                            unitName)
                     }
 
-                    OnClickInterface.Click.DISCONNECT -> {
+                    EventInterface.Click.DISCONNECT -> {
                         makeSnack(view, model.disconnectUnit(unitName))
+                        adapter!!.notifyItemChanged(pos)
+                        model.removeListener(
+                            this@UnitListFragment,
+                            IntfGuiListener.LogUnitEvent.CONNECTION_LOST,
+                            unitName)
+                        model.removeListener(
+                            this@UnitListFragment,
+                            IntfGuiListener.LogUnitEvent.CMDFEEDBACK_RECEIVED,
+                            unitName)
+                        model.removeListener(
+                            this@UnitListFragment,
+                            IntfGuiListener.LogUnitEvent.ERROR_RECEIVED,
+                            unitName)
                     }
 
-                    OnClickInterface.Click.BUTTON1 -> {
+                    EventInterface.Click.BUTTON1 -> {
                         makeSnack(view, model.sendCommand(1, unitName))
                     }
 
-                    OnClickInterface.Click.BUTTON2 -> {
+                    EventInterface.Click.BUTTON2 -> {
                         makeSnack(view, model.sendCommand(2, unitName))
                     }
 
-                    OnClickInterface.Click.BUTTON3 -> {
+                    EventInterface.Click.BUTTON3 -> {
                         makeSnack(view, model.sendCommand(3, unitName))
                     }
                 }
@@ -89,14 +125,15 @@ class UnitListFragment : Fragment(){
         val recyclerView: RecyclerView = view.findViewById(R.id.recycler_view)
 
         val units = model.units.value
-        adapter = units?.let { UnitAdapter(it, onclickInterface as OnClickInterface, view) }
+        adapter = units?.let { UnitAdapter(it, onclickInterface as EventInterface) }
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(context)
 
         val listObserver = Observer<MutableList<LoggingUnit>> { newList ->
             adapter?.updateView(newList)
         }
-        model.getUnits().observe(this, listObserver)
+
+        model.getUnits().observe(viewLifecycleOwner, listObserver)
 
         binding.fab.setOnClickListener {
             findNavController().navigate(R.id.action_FirstFragment_to_addUnitFragment)
@@ -110,6 +147,45 @@ class UnitListFragment : Fragment(){
     }
 
     private fun makeSnack(view: View, message: String) {
-        Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
+        Snackbar.make(view, message, Snackbar.LENGTH_SHORT).show()
+    }
+
+    override fun loggingUnitEvent(
+        lue: IntfGuiListener.LogUnitEvent,
+        value: Int,
+        unitName: String) {
+        when (lue) {
+            IntfGuiListener.LogUnitEvent.CONNECTION_STATE -> {
+                Log.d("1","Listener CONNECTION_STATE got triggered!")
+                PrintOnMonitor.printlnMon("Listener: $lue got triggerd with Value: $value , and UnitName: $unitName", PrintOnMonitor.Reason.LISTENER);
+            }
+            IntfGuiListener.LogUnitEvent.CONNECTION_LOST -> {
+                activity?.runOnUiThread {
+                    val unit = model.getUnit(unitName)
+                    adapter!!.updateViewHolder(model.units.value!!.indexOf(unit))
+                    model.removeListener(
+                        this@UnitListFragment,
+                        IntfGuiListener.LogUnitEvent.CONNECTION_LOST,
+                        unitName)
+                    Snackbar.make(
+                        requireView(),
+                        "Unit $unitName hat die Verbindung verloren",
+                        Snackbar.LENGTH_SHORT).show()
+                }
+                Log.d("1","Listener CONNECTION_LOST got triggered!")
+            }
+            IntfGuiListener.LogUnitEvent.CMDFEEDBACK_RECEIVED -> {
+                activity?.runOnUiThread {
+                    val unit = model.getUnit(unitName)
+                    adapter!!.updateViewHolder(model.units.value!!.indexOf(unit))
+                    Toast.makeText(context, "$value empfangen", Toast.LENGTH_LONG).show()
+                }
+                Log.d("1","Listener CMDFEEDBACK_RECEIVED got triggered!")
+            }
+            IntfGuiListener.LogUnitEvent.ERROR_RECEIVED -> {
+                //Log.d("1","Listener ERROR_RECEIVED got triggered!")
+                PrintOnMonitor.printlnMon("Listener: $lue got triggerd with Value: $value , and UnitName: $unitName", PrintOnMonitor.Reason.LISTENER);
+            }
+        }
     }
 }

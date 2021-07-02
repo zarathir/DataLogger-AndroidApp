@@ -6,12 +6,14 @@ import android.os.StrictMode.ThreadPolicy
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
+import com.google.android.material.snackbar.Snackbar
 import ght.app.datalogger.data.logSystem.IntfGuiListener
 import ght.app.datalogger.data.logSystem.IntfGuiListener.LogUnitEvent
 import ght.app.datalogger.data.logSystem.LoggingUnit

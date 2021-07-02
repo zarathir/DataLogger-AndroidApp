@@ -1,20 +1,20 @@
 package ght.app.datalogger
 
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.SnapHelper
-import com.google.android.material.snackbar.Snackbar
 import ght.app.datalogger.data.logSystem.LoggingUnit
 import ght.app.datalogger.data.units.UnitArduino
 import ght.app.datalogger.data.units.UnitRaspberry
 
-class UnitAdapter(private var list: MutableList<LoggingUnit>, private var onClickInterface: OnClickInterface,
-private var view: View)
+class UnitAdapter(
+    private var list: MutableList<LoggingUnit>,
+    private var eventInterface: EventInterface)
     : RecyclerView.Adapter<UnitAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -27,7 +27,6 @@ private var view: View)
         val btnCmd3: Button = view.findViewById(R.id.command_button_3)
         val btnTrendView: Button = view.findViewById(R.id.trendview_button)
         val btnRemoveUnit: Button = view.findViewById(R.id.remove_button)
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -43,43 +42,57 @@ private var view: View)
         val ipAddressText = list[position].ipAdress.toString()
         holder.unitIpAddress.text = ipAddressText.subSequence(1, ipAddressText.length )
 
+        if (list[position].isConnected) {
+            holder.btnConnect.text = "Trennen"
+            holder.btnCmd1.visibility = VISIBLE
+            holder.btnCmd2.visibility = VISIBLE
+            holder.btnCmd3.visibility = VISIBLE
+        } else {
+            holder.btnConnect.text = "Verbinden"
+            holder.btnCmd1.visibility = INVISIBLE
+            holder.btnCmd2.visibility = INVISIBLE
+            holder.btnCmd3.visibility = INVISIBLE
+        }
+
+        if (list[position].logDataList.isEmpty()) {
+            holder.btnTrendView.visibility = INVISIBLE
+        } else {
+            holder.btnTrendView.visibility = VISIBLE
+        }
+
         holder.btnConnect.setOnClickListener {
             if (!list[position].isConnected){
-                onClickInterface.setClick(holder.absoluteAdapterPosition,
-                    OnClickInterface.Click.CONNECT)
-                holder.btnConnect.text = "Disconnect"
-                holder.btnConnect.setBackgroundColor(Color.rgb(115, 117, 251))
+                eventInterface.setClick(holder.absoluteAdapterPosition,
+                    EventInterface.Click.CONNECT)
             } else {
-                onClickInterface.setClick(holder.absoluteAdapterPosition,
-                    OnClickInterface.Click.DISCONNECT)
-                holder.btnConnect.text = "Connect"
-                holder.btnConnect.setBackgroundColor(Color.rgb(98, 0, 238))
+                eventInterface.setClick(holder.absoluteAdapterPosition,
+                    EventInterface.Click.DISCONNECT)
             }
         }
 
         holder.btnCmd1.setOnClickListener {
-            onClickInterface.setClick(holder.absoluteAdapterPosition,
-            OnClickInterface.Click.BUTTON1)
+            eventInterface.setClick(holder.absoluteAdapterPosition,
+            EventInterface.Click.BUTTON1)
         }
 
         holder.btnCmd2.setOnClickListener {
-            onClickInterface.setClick(holder.absoluteAdapterPosition,
-            OnClickInterface.Click.BUTTON2)
+            eventInterface.setClick(holder.absoluteAdapterPosition,
+            EventInterface.Click.BUTTON2)
         }
 
         holder.btnCmd3.setOnClickListener {
-            onClickInterface.setClick(holder.absoluteAdapterPosition,
-            OnClickInterface.Click.BUTTON3)
+            eventInterface.setClick(holder.absoluteAdapterPosition,
+            EventInterface.Click.BUTTON3)
         }
 
         holder.btnTrendView.setOnClickListener {
-            onClickInterface.setClick(holder.absoluteAdapterPosition,
-            OnClickInterface.Click.TREND)
+            eventInterface.setClick(holder.absoluteAdapterPosition,
+            EventInterface.Click.TREND)
         }
 
         holder.btnRemoveUnit.setOnClickListener {
-            onClickInterface.setClick(holder.absoluteAdapterPosition,
-            OnClickInterface.Click.REMOVE)
+            eventInterface.setClick(holder.absoluteAdapterPosition,
+            EventInterface.Click.REMOVE)
         }
     }
 
@@ -92,6 +105,10 @@ private var view: View)
         notifyDataSetChanged()
     }
 
+    fun updateViewHolder(position: Int) {
+        notifyItemChanged(position)
+    }
+
     private fun getUnitType(unit: LoggingUnit): String {
         return when (unit) {
             is UnitArduino -> "Arduino"
@@ -100,7 +117,4 @@ private var view: View)
         }
     }
 
-    private fun makeSnack(view: View, message: String) {
-        Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
-    }
 }

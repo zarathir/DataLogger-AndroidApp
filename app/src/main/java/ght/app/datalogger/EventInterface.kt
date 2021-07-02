@@ -1,6 +1,6 @@
 package ght.app.datalogger
 
-interface OnClickInterface {
+interface EventInterface {
     fun setClick(pos: Int, source: Click)
 
     enum class Click {
