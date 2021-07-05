@@ -9,6 +9,7 @@ import ght.app.datalogger.data.logSystem.IntfGuiListener.LogUnitEvent;
 
 import java.io.*;
 import java.net.ConnectException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import java.net.InetAddress;
@@ -196,8 +197,9 @@ public abstract class LoggingUnit implements Serializable {
             //Client Socket erzeugen, incl. Verbindungsanfrage
             try {
                 PrintOnMonitor.printlnMon("Unit: " + getUnitName()  + ", try to connect to Server at: " + getIpAdress().toString().substring(1), PrintOnMonitor.Reason.CONNECTION);
-                clientSocket = new Socket(getIpAdress().toString().substring(1), serverPortNumber);
-                //clientSocket.setKeepAlive(false);
+                //clientSocket = new Socket(getIpAdress().toString().substring(1), serverPortNumber);
+                clientSocket = new Socket();
+                clientSocket.connect(new InetSocketAddress(getIpAdress().toString().substring(1),serverPortNumber),3000);
 
                 writer = new PrintWriter(clientSocket.getOutputStream());
 
