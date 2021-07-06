@@ -2,6 +2,7 @@ package ght.app.datalogger
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +20,7 @@ import ght.app.datalogger.data.logSystem.IntfGuiListener
 import ght.app.datalogger.data.units.UnitArduino
 import ght.app.datalogger.data.units.UnitRaspberry
 import ght.app.datalogger.databinding.FragmentAddUnitBinding
+import java.net.Inet4Address
 import java.net.InetAddress
 
 /**
@@ -107,22 +109,29 @@ class AddUnitFragment : Fragment() {
 
         binding.buttonAdd.setOnClickListener {
 
-            when(selectedUnitType) {
-                EnumUnits.RASPBERRY -> if (model.addUnit(UnitRaspberry(binding.editTextName.text.toString(),
-                    InetAddress.getByName(binding.editTextIpAddress.text.toString()),
-                    selectedIntfType))) {
-                    findNavController().navigate(R.id.action_addUnitFragment_to_FirstFragment)
-                } else {
-                    makeSnack(view)
-                }
+            val ipAddress = binding.editTextIpAddress.text.toString()
+            val unitExists = "Unit existiert bereits"
 
-                EnumUnits.ARDUINO -> if (model.addUnit(UnitArduino(binding.editTextName.text.toString(),
-                    InetAddress.getByName(binding.editTextIpAddress.text.toString()),
-                    selectedIntfType))) {
-                    findNavController().navigate(R.id.action_addUnitFragment_to_FirstFragment)
-                } else {
-                    makeSnack(view)
+            if (Patterns.IP_ADDRESS.matcher(ipAddress).matches()) {
+                when(selectedUnitType) {
+                    EnumUnits.RASPBERRY -> if (model.addUnit(UnitRaspberry(binding.editTextName.text.toString(),
+                            InetAddress.getByName(ipAddress),
+                            selectedIntfType))) {
+                        findNavController().navigate(R.id.action_addUnitFragment_to_FirstFragment)
+                    } else {
+                        makeSnack(view, unitExists)
+                    }
+
+                    EnumUnits.ARDUINO -> if (model.addUnit(UnitArduino(binding.editTextName.text.toString(),
+                            InetAddress.getByName(ipAddress),
+                            selectedIntfType))) {
+                        findNavController().navigate(R.id.action_addUnitFragment_to_FirstFragment)
+                    } else {
+                        makeSnack(view, unitExists)
+                    }
                 }
+            } else {
+                makeSnack(view, "Falsche IP Adresse eingegeben")
             }
 
             hideKeyboard()
@@ -135,8 +144,8 @@ class AddUnitFragment : Fragment() {
         _binding = null
     }
 
-    private fun makeSnack(view: View) {
-        Snackbar.make(view, "Unit existiert bereits", Snackbar.LENGTH_LONG).show()
+    private fun makeSnack(view: View, message: String) {
+        Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
     }
 
     private fun hideKeyboard() {
