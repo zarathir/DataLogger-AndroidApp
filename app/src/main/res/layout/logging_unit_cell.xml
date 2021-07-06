@@ -30,11 +30,11 @@
                 android:textSize="18sp" />
 
             <TextView
-                android:text="@string/unit_type"
-                android:layout_width="match_parent"
+                android:layout_width="186dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="18sp"/>
+                android:text="@string/unit_type"
+                android:textSize="18sp" />
 
         </LinearLayout>
 
@@ -53,7 +53,7 @@
 
             <TextView
                 android:id="@+id/unit_type"
-                android:layout_width="match_parent"
+                android:layout_width="186dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textSize="18sp"
@@ -79,6 +79,8 @@
                 android:id="@+id/connect_button"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:backgroundTint="@color/secondaryColor"
                 android:insetLeft="2dp"
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
@@ -94,7 +96,8 @@
                 android:textAlignment="center"
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
-                android:src="@android:drawable/ic_menu_delete" />
+                android:src="@android:drawable/ic_menu_delete"
+                android:layout_margin="5dp"/>
 
         </LinearLayout>
 
@@ -107,6 +110,8 @@
                 android:id="@+id/command_button_1"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:backgroundTint="@color/secondaryColor"
                 android:insetLeft="2dp"
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
@@ -117,6 +122,8 @@
                 android:id="@+id/command_button_2"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:backgroundTint="@color/secondaryColor"
                 android:insetLeft="2dp"
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
@@ -127,6 +134,8 @@
                 android:id="@+id/command_button_3"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:backgroundTint="@color/secondaryColor"
                 android:insetLeft="2dp"
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
@@ -140,7 +149,8 @@
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
                 android:src="@android:drawable/ic_menu_gallery"
-                android:contentDescription="@string/trendview" />
+                android:contentDescription="@string/trendview"
+                android:layout_margin="5dp"/>
 
 
         </LinearLayout>
