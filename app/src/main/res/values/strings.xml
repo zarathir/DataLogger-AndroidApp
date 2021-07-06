@@ -19,6 +19,7 @@
     <string name="remove_unit">Entfernen</string>
     <string name="unit_name">Unitname:</string>
     <string name="unit_type">Unit Typ:</string>
+    <string name="trendview">Trendview</string>
 
     <string-array name="units_array">
         <item>Arduino</item>

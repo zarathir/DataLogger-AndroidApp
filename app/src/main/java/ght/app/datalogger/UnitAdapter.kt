@@ -26,8 +26,8 @@ class UnitAdapter(
         val btnCmd1: Button = view.findViewById(R.id.command_button_1)
         val btnCmd2: Button = view.findViewById(R.id.command_button_2)
         val btnCmd3: Button = view.findViewById(R.id.command_button_3)
-        val btnTrendView: Button = view.findViewById(R.id.trendview_button)
-        val btnRemoveUnit: Button = view.findViewById(R.id.remove_button)
+        val btnTrendView: ImageButton = view.findViewById(R.id.trendview_button)
+        val btnRemoveUnit: ImageButton = view.findViewById(R.id.remove_button)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

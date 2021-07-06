@@ -85,16 +85,16 @@
                 android:text="@string/connect_button"
                 android:textSize="12sp" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/remove_button"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:insetLeft="2dp"
                 android:textAlignment="center"
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
-                android:drawableLeft="@android:drawable/ic_menu_delete" />
+                android:src="@android:drawable/ic_menu_delete" />
 
         </LinearLayout>
 
@@ -133,15 +133,14 @@
                 android:text="@string/command3_button"
                 android:textSize="12sp" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/trendview_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:insetLeft="2dp"
-                android:drawableLeft="@android:drawable/ic_menu_gallery"
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
-                android:textAlignment="center" />
+                android:src="@android:drawable/ic_menu_gallery"
+                android:contentDescription="@string/trendview" />
 
 
         </LinearLayout>
