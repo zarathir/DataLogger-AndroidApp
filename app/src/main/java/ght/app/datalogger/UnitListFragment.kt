@@ -14,6 +14,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import ght.app.datalogger.UnitAdapter.ViewHolder
 import ght.app.datalogger.data.logSystem.IntfGuiListener
 import ght.app.datalogger.data.logSystem.LoggingUnit
 import ght.app.datalogger.data.logSystem.PrintOnMonitor
@@ -152,7 +153,12 @@ class UnitListFragment : Fragment(), IntfGuiListener {
     private fun makeSnack(view: View, message: String) {
         Snackbar.make(view, message, Snackbar.LENGTH_SHORT).show()
     }
-
+    /**
+     * Function that triggers events received from the [IntfGuiListener]
+     * @param lue [IntfGuiListener.LogUnitEvent]
+     * @param value Value returned from the [LoggingUnit]
+     * @param unitName Unit that returned the event
+     */
     override fun loggingUnitEvent(
         lue: IntfGuiListener.LogUnitEvent,
         value: Int,

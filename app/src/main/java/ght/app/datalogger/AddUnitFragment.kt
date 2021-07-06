@@ -52,6 +52,7 @@ class AddUnitFragment : Fragment() {
         selectedUnitType = EnumUnits.ARDUINO
         selectedIntfType = EnumConnection.WIFI
 
+        // Create dropdown menu for unit type
         val spinnerUnits : Spinner = view.findViewById(R.id.dropdown_unit_type)
 
         ArrayAdapter.createFromResource(
@@ -62,7 +63,6 @@ class AddUnitFragment : Fragment() {
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spinnerUnits.adapter = adapter
         }
-
         spinnerUnits.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
                 parent: AdapterView<*>?,
@@ -80,6 +80,7 @@ class AddUnitFragment : Fragment() {
             }
         }
 
+        // Create dropdown menu for interface type
         val spinnerInterface : Spinner = view.findViewById(R.id.dropdown_interface_type)
 
         ArrayAdapter.createFromResource(
@@ -107,6 +108,7 @@ class AddUnitFragment : Fragment() {
             }
         }
 
+        // Create unit with the given informations
         binding.buttonAdd.setOnClickListener {
 
             val ipAddress = binding.editTextIpAddress.text.toString()

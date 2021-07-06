@@ -12,6 +12,11 @@ import com.anychart.chart.common.dataentry.ValueDataEntry
 import com.google.android.material.snackbar.Snackbar
 import ght.app.datalogger.databinding.FragmentChartBinding
 
+/**
+ * This [Fragment] is for creating the chart view and display the data from the
+ * chosen unit.
+ */
+
 class ChartFragment : Fragment() {
 
     private var _binding: FragmentChartBinding? = null

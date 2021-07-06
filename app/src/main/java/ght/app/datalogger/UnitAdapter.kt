@@ -8,10 +8,16 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import ght.app.datalogger.data.logSystem.LoggingUnit
 import ght.app.datalogger.data.units.UnitArduino
 import ght.app.datalogger.data.units.UnitRaspberry
+import kotlin.coroutines.coroutineContext
+
+/**
+ * This [UnitAdapter] is for displaying and handling events on the added unit items.
+ */
 
 class UnitAdapter(
     private var list: MutableList<LoggingUnit>,
@@ -101,11 +107,19 @@ class UnitAdapter(
         return list.size
     }
 
+    /**
+     * Function for updating the whole list with new items. Trigger after deserializing the units
+     * @param list List of LoggingUnits
+     */
     fun updateView(list: MutableList<LoggingUnit>) {
         this.list = list
         notifyDataSetChanged()
     }
 
+    /**
+     * Function for updating the [ViewHolder] at the given position
+     * @param position Position of item that has changed
+     */
     fun updateViewHolder(position: Int) {
         notifyItemChanged(position)
     }
