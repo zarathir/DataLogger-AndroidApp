@@ -17,7 +17,9 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:popupTheme="@style/Theme.DataLogger.PopupOverlay" />
+            app:popupTheme="@style/Theme.DataLogger.PopupOverlay"
+            app:subtitleTextColor="@color/primaryTextColor"
+            app:titleTextColor="@color/primaryTextColor" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
