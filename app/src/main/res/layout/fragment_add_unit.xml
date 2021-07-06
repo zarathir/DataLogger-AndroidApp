@@ -17,7 +17,8 @@
             android:editable="true"
             android:ems="10"
             android:hint="@string/name"
-            android:inputType="text" />
+            android:inputType="text"
+            android:paddingHorizontal="13dp"/>
 
         <EditText
             android:id="@+id/editTextIpAddress"
@@ -26,25 +27,30 @@
             android:editable="true"
             android:ems="10"
             android:hint="@string/ip_address"
-            android:inputType="number|text" />
+            android:inputType="number|text"
+            android:paddingHorizontal="13dp"/>
 
         <Spinner
             android:id="@+id/dropdown_unit_type"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:spinnerMode="dropdown" />
+            android:spinnerMode="dropdown"
+            android:layout_marginHorizontal="5dp"/>
 
         <Spinner
             android:id="@+id/dropdown_interface_type"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:spinnerMode="dropdown" />
+            android:spinnerMode="dropdown"
+            android:layout_marginHorizontal="5dp"/>
 
         <Button
             android:id="@+id/button_add"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/Add" />
+            android:backgroundTint="@color/secondaryColor"
+            android:text="@string/Add"
+            android:layout_marginHorizontal="5dp"/>
 
     </LinearLayout>
 </FrameLayout>

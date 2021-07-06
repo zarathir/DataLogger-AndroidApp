@@ -160,9 +160,9 @@
 
             <ImageButton
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clickable="false"
+                android:layout_height="15dp"
                 android:backgroundTint="@color/primaryColor"
+                android:clickable="false"
                 android:contentDescription="@string/separator" />
         </LinearLayout>
 

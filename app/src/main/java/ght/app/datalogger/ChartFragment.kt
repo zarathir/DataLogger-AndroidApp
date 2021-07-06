@@ -36,7 +36,7 @@ class ChartFragment : Fragment() {
         val model: UnitViewModel by activityViewModels()
 
         val chart = AnyChart.line()
-        chart.title(model.getActiveUnit() + " unit Trenddaten")
+        chart.title( "Trenddaten: " + model.getActiveUnit())
         chart.yAxis(0).title("Sensorwert")
 
         val logData = model.getTrendData()
