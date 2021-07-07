@@ -84,6 +84,7 @@
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
                 android:text="@string/connect_button"
+                android:textColor="@color/secondaryTextColor"
                 android:textSize="12sp" />
 
             <ImageButton
@@ -115,6 +116,7 @@
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
                 android:text="@string/command1_button"
+                android:textColor="@color/secondaryTextColor"
                 android:textSize="12sp" />
 
             <Button
@@ -127,6 +129,7 @@
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
                 android:text="@string/command2_button"
+                android:textColor="@color/secondaryTextColor"
                 android:textSize="12sp" />
 
             <Button
@@ -139,6 +142,7 @@
                 android:paddingLeft="24dp"
                 android:paddingRight="24dp"
                 android:text="@string/command3_button"
+                android:textColor="@color/secondaryTextColor"
                 android:textSize="12sp" />
 
             <ImageButton
