@@ -13,6 +13,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -437,7 +438,9 @@ public abstract class LoggingUnit implements Serializable {
         }
 
 
-
+        /**
+         * Overwritten Methode of Runnable (ReaderThreadUnit_xy): this is the Action that will be run if the readerthread of this unit gets started.
+         */
         @Override
         public void run() {
             PrintOnMonitor.printlnMon("Thread: " + Thread.currentThread().getName() + ", is running!", PrintOnMonitor.Reason.THREAD);
@@ -557,11 +560,13 @@ public abstract class LoggingUnit implements Serializable {
             try {
                 //read command feedback
                 serverFeedback = reader.readLine();
-                if (!serverFeedback.equals("*") && !serverFeedback.equals("")) {
+                if (serverFeedback != null && !serverFeedback.equals("*") && !serverFeedback.equals("")) {
                     command = serverFeedback.substring(1);
                     PrintOnMonitor.printlnMon("Unit: " + getUnitName() + ", Commando-Feedback of Server: " + command, PrintOnMonitor.Reason.UNITINTERFACE);
                 } else {
-                    command = serverFeedback;
+                    if (serverFeedback != null) {
+                        command = serverFeedback;
+                    }
                 }
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -599,26 +604,28 @@ public abstract class LoggingUnit implements Serializable {
                     break;
                 }
 
-                value = serverFeedback;
-                if (value.equals("")) {
-                    //ignored
-                }else if (value.equals("*")) {
-                    //Connectioncheck
-                    setStartTime();
-                    PrintOnMonitor.printMon("*", PrintOnMonitor.Reason.CONNECTIONCHECK);
-                }else if (value.equals("0")) {
-                    //Commandfeedback value = false
-                    PrintOnMonitor.printMon("; Value: " + value, PrintOnMonitor.Reason.UNITINTERFACE);
-                }else if (value.equals("1")) {
-                    //Commandfeedback value = true
-                    PrintOnMonitor.printMon("; Value: " + value, PrintOnMonitor.Reason.UNITINTERFACE);
-                }else if (value.equals("#")) {
-                    //Protocolendline
-                    PrintOnMonitor.printMon("; end of Protocol reached!", PrintOnMonitor.Reason.UNITINTERFACE);
-                    PrintOnMonitor.printMon(null, PrintOnMonitor.Reason.UNITINTERFACE);
-                    result = commandNo;
-                } else {
-                    PrintOnMonitor.printMon("; not valid: " + value, PrintOnMonitor.Reason.UNITINTERFACE);
+                if (serverFeedback != null) {
+                    value = serverFeedback;
+                    if (value.equals("")) {
+                        //ignored
+                    } else if (value.equals("*")) {
+                        //Connectioncheck
+                        setStartTime();
+                        PrintOnMonitor.printMon("*", PrintOnMonitor.Reason.CONNECTIONCHECK);
+                    } else if (value.equals("0")) {
+                        //Commandfeedback value = false
+                        PrintOnMonitor.printMon("; Value: " + value, PrintOnMonitor.Reason.UNITINTERFACE);
+                    } else if (value.equals("1")) {
+                        //Commandfeedback value = true
+                        PrintOnMonitor.printMon("; Value: " + value, PrintOnMonitor.Reason.UNITINTERFACE);
+                    } else if (value.equals("#")) {
+                        //Protocolendline
+                        PrintOnMonitor.printMon("; end of Protocol reached!", PrintOnMonitor.Reason.UNITINTERFACE);
+                        PrintOnMonitor.printMon(null, PrintOnMonitor.Reason.UNITINTERFACE);
+                        result = commandNo;
+                    } else {
+                        PrintOnMonitor.printMon("; not valid: " + value, PrintOnMonitor.Reason.UNITINTERFACE);
+                    }
                 }
             }
         }
@@ -660,10 +667,13 @@ public abstract class LoggingUnit implements Serializable {
                     PrintOnMonitor.printMon(line + " ", PrintOnMonitor.Reason.UNITINTERFACE);
 
                     if (line == null || !reader.ready()) {
-                        if (line.equals("#")) {
+                        if (line != null && line.equals("#")) {
                             finishedRead = true;
                         }
                     }
+                } catch (SocketException ignored) {
+                    //Exception if Unit gets disconnected while data transferr
+                    break;
                 } catch (IOException ex) {
                     ex.printStackTrace();
                     break;
