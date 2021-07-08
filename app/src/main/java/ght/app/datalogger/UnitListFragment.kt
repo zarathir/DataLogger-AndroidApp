@@ -189,7 +189,7 @@ class UnitListFragment : Fragment(), IntfGuiListener {
                 activity?.runOnUiThread {
                     val unit = model.getUnit(unitName)
                     adapter!!.updateViewHolder(model.units.value!!.indexOf(unit))
-                    Toast.makeText(context, "$value empfangen", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, unitName + ":\n $value empfangen", Toast.LENGTH_LONG).show()
                 }
                 Log.d("1","Listener CMDFEEDBACK_RECEIVED got triggered!")
             }

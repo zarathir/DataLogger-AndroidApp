@@ -393,28 +393,36 @@ public abstract class LoggingUnit implements Serializable {
         if (lue != null) {
             switch (lue) {
                 case CONNECTION_STATE:
-                    connectionStateListeners.forEach((cl) -> {
-                        //all connectionStateListeners gets the given Event.
-                        cl.loggingUnitEvent(lue, value, getUnitName());
-                    });
+                    if (connectionStateListeners.size() > 0) {
+                        connectionStateListeners.forEach((cl) -> {
+                            //all connectionStateListeners gets the given Event.
+                            cl.loggingUnitEvent(lue, value, getUnitName());
+                        });
+                    }
                     break;
                 case CONNECTION_LOST:
-                    connectionLostListeners.forEach((cl) -> {
-                        //all connectionLostListeners gets the given Event.
-                        cl.loggingUnitEvent(lue, value, getUnitName());
-                    });
+                    if (connectionLostListeners.size() > 0) {
+                        connectionLostListeners.forEach((cl) -> {
+                            //all connectionLostListeners gets the given Event.
+                            cl.loggingUnitEvent(lue, value, getUnitName());
+                        });
+                    }
                     break;
                 case CMDFEEDBACK_RECEIVED:
-                    comandReceivedListeners.forEach((cl) -> {
-                        //all comandReceivedListeners gets the given Event.
-                        cl.loggingUnitEvent(lue, value, getUnitName());
-                    });
+                    if (comandReceivedListeners.size() > 0) {
+                        comandReceivedListeners.forEach((cl) -> {
+                            //all comandReceivedListeners gets the given Event.
+                            cl.loggingUnitEvent(lue, value, getUnitName());
+                        });
+                    }
                     break;
                 case ERROR_RECEIVED:
-                    errorReceivedListeners.forEach((cl) -> {
-                        //all errorReceivedListeners gets the given Event.
-                        cl.loggingUnitEvent(lue, value, getUnitName());
-                    });
+                    if (errorReceivedListeners.size() > 0) {
+                        errorReceivedListeners.forEach((cl) -> {
+                            //all errorReceivedListeners gets the given Event.
+                            cl.loggingUnitEvent(lue, value, getUnitName());
+                        });
+                    }
                     break;
             }
         }
