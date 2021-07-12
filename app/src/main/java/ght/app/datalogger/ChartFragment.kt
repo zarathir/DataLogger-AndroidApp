@@ -1,5 +1,6 @@
 package ght.app.datalogger
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,7 @@ import androidx.fragment.app.activityViewModels
 import com.anychart.AnyChart
 import com.anychart.chart.common.dataentry.DataEntry
 import com.anychart.chart.common.dataentry.ValueDataEntry
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import ght.app.datalogger.databinding.FragmentChartBinding
 
@@ -38,6 +40,11 @@ class ChartFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Resolve color from theme attr
+        val primaryColor = MaterialColors.getColor(
+            view, R.attr.colorSecondary
+        )
+
         val model: UnitViewModel by activityViewModels()
 
         val chart = AnyChart.line()
@@ -55,6 +62,11 @@ class ChartFragment : Fragment() {
                 data.add(toDataEntry(logData[i]))
             }
         }
+
+        // set first series data
+        var line = chart.line(data);
+        // set stroke thickness 5px and stroke color as darkOrange
+        line.stroke("2 DarkOrange");
 
         if (data.isEmpty()) {
             data.add(ValueDataEntry("10-10-2020 10:10", 0))
