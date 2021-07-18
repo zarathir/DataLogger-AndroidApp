@@ -15,7 +15,9 @@ import java.net.Socket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 
@@ -31,6 +33,8 @@ public abstract class LoggingUnit implements Serializable {
     private static final long connectionTimeoutDefault_ms = 2000; //timeout in normalmode: 2s
     private static final long connectionTimeoutDebug_ms = 30000; //timeout in debugmode: 30s
 
+    private Object obj;
+
     private String unitName;
     private EnumUnits unitVendor;
     private transient boolean connected;
@@ -43,10 +47,10 @@ public abstract class LoggingUnit implements Serializable {
 
     private transient Thread unitReaderThread;
 
-    private transient List<IntfGuiListener> connectionStateListeners;
-    private transient List<IntfGuiListener> connectionLostListeners;
-    private transient List<IntfGuiListener> comandReceivedListeners;
-    private transient List<IntfGuiListener> errorReceivedListeners;
+    private transient Set<IntfGuiListener> connectionStateListeners;
+    private transient Set<IntfGuiListener> connectionLostListeners;
+    private transient Set<IntfGuiListener> comandReceivedListeners;
+    private transient Set<IntfGuiListener> errorReceivedListeners;
 
     private transient static String pathToPackage = "DataLoggerApp/src/main/java/ght/app/files/";
     //private transient static File logfile = new File(pathToPackage + "datalog.txt");
@@ -82,12 +86,14 @@ public abstract class LoggingUnit implements Serializable {
             this.unitVendor = EnumUnits.RASPBERRY;
         }
 
-        this.connectionStateListeners = new ArrayList<>();
-        this.connectionLostListeners = new ArrayList<>();
-        this.comandReceivedListeners = new ArrayList<>();
-        this.errorReceivedListeners = new ArrayList<>();
+        this.connectionStateListeners = new HashSet<>();
+        this.connectionLostListeners = new HashSet<>();
+        this.comandReceivedListeners = new HashSet<>();
+        this.errorReceivedListeners = new HashSet<>();
 
         this.startTime = 0;
+
+        this.obj = new Object();
     }
 
 
@@ -104,7 +110,9 @@ public abstract class LoggingUnit implements Serializable {
      * @return  connectionstate (as boolean)
      */
     public boolean isConnected() {
-        return connected;
+        synchronized (obj){
+            return connected;
+        }
     }
 
     /**
@@ -113,11 +121,13 @@ public abstract class LoggingUnit implements Serializable {
      * @param  connectionState (as boolean)
      */
     protected void setConnection(boolean connectionState) {
-        this.connected = connectionState;
-        if (connectionState) {
-            notifyListener(LogUnitEvent.CONNECTION_STATE, 1);
-        }else {
-            notifyListener(LogUnitEvent.CONNECTION_STATE, 0);
+        synchronized (obj) {
+            this.connected = connectionState;
+            if (connectionState) {
+                notifyListener(LogUnitEvent.CONNECTION_STATE, 1);
+            } else {
+                notifyListener(LogUnitEvent.CONNECTION_STATE, 0);
+            }
         }
     }
 
