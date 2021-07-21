@@ -3,7 +3,6 @@ package ght.app.datalogger.data.logSystem;
 import android.content.Context;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 
@@ -14,16 +13,12 @@ import java.util.ArrayList;
  * @version 1.000  04.05.2021
  */
 public class UnitHandler implements Serializable{
-    private static String pathToPackage = "DataLogger/app/src/main/java/ght/app/files/";
-    private static File file = new File(pathToPackage + "MyUnits.ser");
-    private static final String FILE_NAME = "MyUnits.ser";
-
-
-    private ArrayList<LoggingUnit> myUnits;
-
+    private transient ArrayList<LoggingUnit> myUnits;
+    private transient File file;
 
     //Constructor
     public UnitHandler() {
+        this.file = null;
         this.myUnits = new ArrayList<>();
     }
 
@@ -72,10 +67,13 @@ public class UnitHandler implements Serializable{
      * Methode writes all the Units of the Unit-ArrayList into a file, to be able to restore it sometime later.
      */
     public void writeUnitsIntoFile(Context context) {
+        if (file == null) {
+            file = new File(context.getFilesDir() + "/MyUnits.ser");
+        }
 
         if (myUnits.size() > 0) {
 
-            try (FileOutputStream fos = context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
+            try (OutputStream fos = new FileOutputStream(file);
                  ObjectOutputStream oos = new ObjectOutputStream(fos)) {
 
                 oos.writeObject(myUnits);
@@ -95,8 +93,12 @@ public class UnitHandler implements Serializable{
      * Methode reads all the Units out of the file and restores the Unit-ArrayList with it.
      */
     public void readUnitsOfFile(Context context) throws ExceptionDeserialization {
+        if (file == null) {
+            file = new File(context.getFilesDir() + "/MyUnits.ser");
+        }
 
-        try (FileInputStream fis = context.openFileInput(FILE_NAME);
+
+        try (InputStream fis = new FileInputStream(file);
              ObjectInputStream ois = new ObjectInputStream(fis)) {
 
             myUnits.clear();

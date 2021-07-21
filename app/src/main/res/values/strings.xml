@@ -2,8 +2,17 @@
     <string name="app_name">Data Logger</string>
     <string name="action_safe_units">Safe units</string>
     <string name="action_restore_units">Restore units</string>
+    <string name="about">About</string>
+    <string name="version">App-Version:</string>
+    <string name="developers">Entwickler:</string>
+    <string name="initator">Auftraggeber:</string>
+    <string name="initiant">ZHAW Zürich</string>
+    <string name="developer1">Haller Stefan</string>
+    <string name="developer2">Michael Thal</string>
+    <string name="developer3">Matthias Gasser</string>
     <!-- Strings used for fragments for navigation -->
     <string name="unit_list_fragment_label">Units</string>
+    <string name="about_fragment_label">About</string>
     <string name="chart_fragment_label">Chart</string>
     <string name="add_unit_fragment_label">Add Unit</string>
     <string name="next">Next</string>

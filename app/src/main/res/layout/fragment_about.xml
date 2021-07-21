@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/unit_list_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".UnitListFragment">
+
+    <TextView
+        android:id="@+id/title_Initiator"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="104dp"
+        android:text="@string/initator"
+        android:textColor="@color/secondaryColor"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:typeface="normal"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title_Develobers" />
+
+    <TextView
+        android:id="@+id/value_Initiator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="50dp"
+        android:text="@string/initiant"
+        android:textColor="@color/secondaryColor"
+        android:textSize="20sp"
+        android:visibility="visible"
+        app:layout_constraintStart_toEndOf="@+id/title_Initiator"
+        app:layout_constraintTop_toBottomOf="@+id/value_Developer3" />
+
+    <TextView
+        android:id="@+id/title_Version"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="50dp"
+        android:text="@string/version"
+        android:textColor="@color/secondaryColor"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:typeface="normal"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title_Initiator" />
+
+    <TextView
+        android:id="@+id/title_Develobers"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="60dp"
+        android:text="@string/developers"
+        android:textColor="@color/secondaryColor"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:typeface="normal"
+        android:visibility="visible"
+        app:layout_constraintEnd_toStartOf="@+id/value_Developer1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/value_Version"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="50dp"
+        android:text="---"
+        android:textColor="@color/secondaryColor"
+        android:textSize="20sp"
+        android:visibility="visible"
+        app:layout_constraintStart_toEndOf="@+id/title_Version"
+        app:layout_constraintTop_toBottomOf="@+id/value_Initiator" />
+
+    <TextView
+        android:id="@+id/value_Developer1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="60dp"
+        android:text="@string/developer1"
+        android:textColor="@color/secondaryColor"
+        android:textSize="20sp"
+        android:visibility="visible"
+        app:layout_constraintStart_toEndOf="@+id/title_Develobers"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/value_Developer2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="40dp"
+        android:text="@string/developer2"
+        android:textColor="@color/secondaryColor"
+        android:textSize="20sp"
+        android:visibility="visible"
+        app:layout_constraintStart_toEndOf="@+id/title_Develobers"
+        app:layout_constraintTop_toBottomOf="@+id/value_Developer1" />
+
+    <TextView
+        android:id="@+id/value_Developer3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="40dp"
+        android:text="@string/developer3"
+        android:textColor="@color/secondaryColor"
+        android:textSize="20sp"
+        android:visibility="visible"
+        app:layout_constraintStart_toEndOf="@+id/title_Develobers"
+        app:layout_constraintTop_toBottomOf="@+id/value_Developer2" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

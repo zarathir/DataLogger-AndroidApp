@@ -3,20 +3,15 @@ package ght.app.datalogger
 import android.os.Bundle
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
-import com.google.android.material.snackbar.Snackbar
-import ght.app.datalogger.data.logSystem.IntfGuiListener
-import ght.app.datalogger.data.logSystem.IntfGuiListener.LogUnitEvent
-import ght.app.datalogger.data.logSystem.LoggingUnit
 import ght.app.datalogger.databinding.ActivityMainBinding
 
 
@@ -63,6 +58,10 @@ class MainActivity : AppCompatActivity() {
             }
             R.id.action_restore_units -> {
                 model.restoreUnits(applicationContext)
+                true
+            }
+            R.id.action_ShowAboutFragment -> {
+                findNavController(R.id.nav_host_fragment_content_main).navigate(R.id.action_AnyFragment_to_AboutFragment)
                 true
             }
             else -> super.onOptionsItemSelected(item)

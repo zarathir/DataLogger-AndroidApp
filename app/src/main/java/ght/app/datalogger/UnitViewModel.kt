@@ -1,15 +1,11 @@
 package ght.app.datalogger
 
 import android.content.Context
-import androidx.fragment.app.Fragment
+import android.content.pm.PackageInfo
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.android.material.snackbar.Snackbar
-import ght.app.datalogger.UnitAdapter.ViewHolder
 import ght.app.datalogger.data.logSystem.*
-import java.lang.Exception
-import kotlin.collections.ArrayList
 
 
 /**
@@ -131,6 +127,15 @@ class UnitViewModel : ViewModel() {
         } catch (e: Exception) {
             "Unit $unitName konnte nicht verbunden werden"
         }
+    }
+
+    /**
+     * show about dialog
+     * @param unitName Unit name of the [LoggingUnit] to connect to
+     */
+    fun showAbout(): String {
+        var version = BuildConfig.VERSION_NAME;
+        return "Version: $version";
     }
 
     /**

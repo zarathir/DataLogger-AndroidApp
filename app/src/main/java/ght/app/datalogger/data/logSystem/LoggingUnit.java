@@ -30,10 +30,10 @@ import java.util.concurrent.TimeUnit;
 public abstract class LoggingUnit implements Serializable {
     private static final long serialVersionUID = 1L;
     private static final int serverPortNumber = 5001;
-    private static final long connectionTimeoutDefault_ms = 2000; //timeout in normalmode: 2s
+    private static final long connectionTimeoutDefault_ms = 3000; //timeout in normalmode: 2s
     private static final long connectionTimeoutDebug_ms = 30000; //timeout in debugmode: 30s
 
-    private Object obj;
+    private transient Object obj;
 
     private String unitName;
     private EnumUnits unitVendor;

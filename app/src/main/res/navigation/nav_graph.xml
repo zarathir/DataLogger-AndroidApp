@@ -18,6 +18,9 @@
         <action
             android:id="@+id/action_FirstFragment_to_addUnitFragment"
             app:destination="@id/addUnitFragment" />
+        <action
+            android:id="@+id/action_AnyFragment_to_AboutFragment"
+            app:destination="@id/aboutFragment" />
     </fragment>
     <fragment
         android:id="@+id/ChartFragment"
@@ -28,6 +31,9 @@
         <action
             android:id="@+id/action_SecondFragment_to_FirstFragment"
             app:destination="@id/UnitListFragment" />
+        <action
+            android:id="@+id/action_AnyFragment_to_AboutFragment"
+            app:destination="@id/aboutFragment" />
     </fragment>
     <fragment
         android:id="@+id/addUnitFragment"
@@ -37,5 +43,17 @@
         <action
             android:id="@+id/action_addUnitFragment_to_FirstFragment"
             app:destination="@id/UnitListFragment" />
+        <action
+            android:id="@+id/action_AnyFragment_to_AboutFragment"
+            app:destination="@id/aboutFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/aboutFragment"
+        android:name="ght.app.datalogger.AboutFragment"
+        android:label="@string/about_fragment_label"
+        tools:layout="@layout/fragment_about">
+        <action
+            android:id="@+id/action_AboutFragment_to_FirstFragment"
+            app:destination="@id/aboutFragment" />
     </fragment>
 </navigation>
