@@ -129,14 +129,6 @@ class UnitViewModel : ViewModel() {
         }
     }
 
-    /**
-     * show about dialog
-     * @param unitName Unit name of the [LoggingUnit] to connect to
-     */
-    fun showAbout(): String {
-        var version = BuildConfig.VERSION_NAME;
-        return "Version: $version";
-    }
 
     /**
      * Disconnect from [LoggingUnit]

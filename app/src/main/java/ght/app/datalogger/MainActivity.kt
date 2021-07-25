@@ -61,8 +61,14 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.action_ShowAboutFragment -> {
-                findNavController(R.id.nav_host_fragment_content_main).navigate(R.id.action_AnyFragment_to_AboutFragment)
-                true
+                //if AbortFragment is already active, it shall not be opend again
+                val currentFragment = findNavController(R.id.nav_host_fragment_content_main)?.currentDestination;
+                if (!currentFragment.toString().endsWith("AboutFragment")) {
+                    findNavController(R.id.nav_host_fragment_content_main).navigate(R.id.action_AnyFragment_to_AboutFragment)
+                    true
+                } else {
+                    false
+                }
             }
             else -> super.onOptionsItemSelected(item)
         }

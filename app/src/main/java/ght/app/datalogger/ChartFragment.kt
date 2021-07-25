@@ -50,6 +50,7 @@ class ChartFragment : Fragment() {
         val chart = AnyChart.line()
         chart.title( "Trenddaten: " + model.getActiveUnit())
         chart.yAxis(0).title("Sensorwert")
+        chart.xScroller(true);
 
         val logData = model.getTrendData()
 

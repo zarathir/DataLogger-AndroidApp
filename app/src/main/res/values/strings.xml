@@ -10,6 +10,8 @@
     <string name="developer1">Haller Stefan</string>
     <string name="developer2">Michael Thal</string>
     <string name="developer3">Matthias Gasser</string>
+    <string name="reason1">M.Bachmann</string>
+    <string name="reason2">(CAS OOP)</string>
     <!-- Strings used for fragments for navigation -->
     <string name="unit_list_fragment_label">Units</string>
     <string name="about_fragment_label">About</string>
