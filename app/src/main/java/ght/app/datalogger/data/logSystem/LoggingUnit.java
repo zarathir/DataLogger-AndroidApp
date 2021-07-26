@@ -1,6 +1,7 @@
 package ght.app.datalogger.data.logSystem;
 
 
+import android.content.Context;
 import android.os.Environment;
 
 import ght.app.datalogger.data.units.UnitArduino;
@@ -52,18 +53,22 @@ public abstract class LoggingUnit implements Serializable {
     private transient Set<IntfGuiListener> comandReceivedListeners;
     private transient Set<IntfGuiListener> errorReceivedListeners;
 
-    private transient static String pathToPackage = "DataLoggerApp/src/main/java/ght/app/files/";
+    //private transient static String pathToPackage = "DataLoggerApp/src/main/java/ght/app/files/";
     //private transient static File logfile = new File(pathToPackage + "datalog.txt");
-    private transient static File logfile = new File(Environment.getExternalStoragePublicDirectory(
+    /*private transient static File logfile = new File(Environment.getExternalStoragePublicDirectory(
             Environment.DIRECTORY_DOCUMENTS)
             + File.separator
-            + "datalog.txt");
+            + "datalog.txt");*/
 
     private transient long startTime; //Nano-Seconds
+    private transient Context myContext;
+    private transient File logfile;
 
     //Constructor
     public LoggingUnit(String unitName) {
         this.unitName = unitName;
+        myContext = null;
+        this.logfile = null;
         initUnit();
     }
 
@@ -150,7 +155,7 @@ public abstract class LoggingUnit implements Serializable {
      * Methode gets the size of the Arraylist logDataList
      * @return size of the ArrayList (as int)
      */
-    protected int getSizeLogDataList() {
+    public long getSizeLogDataList() {
         return logDataList.size();
     }
 
@@ -279,7 +284,10 @@ public abstract class LoggingUnit implements Serializable {
      * @param commandNo that has to be sent to the unit (as int)
      * @return writer state: true=all allright / false=Error occured or not unit connected (as boolean)
      */
-    public boolean sendCommand(int commandNo) {
+    public boolean sendCommand(int commandNo, Context context) {
+        if (context != null) {
+            myContext = context;
+        }
         if (isConnected()) {
 
             //write into Socket
@@ -550,7 +558,7 @@ public abstract class LoggingUnit implements Serializable {
             }
         }else if (commandfeedback.equals("2")) {
             //receive Logfile
-            readFeedback = readLogData(Integer.parseInt(commandfeedback));
+            readFeedback = readLogData(Integer.parseInt(commandfeedback), myContext);
             setStartTime();
             if (readFeedback > -1) {
                 notifyListener(LogUnitEvent.CMDFEEDBACK_RECEIVED, readFeedback);
@@ -655,11 +663,19 @@ public abstract class LoggingUnit implements Serializable {
      * @param commandNo that got read in the previos methode (as int)
      * @return commandnumber if the end of the protocol got reached -1= not fullfilled / >0= fullfilled, commandno (as int)
      */
-    private int readLogData(int commandNo) {
+    private int readLogData(int commandNo, Context context) {
         String serverFeedback = "";
         String value = "";
         int result = -1;
         boolean finishedRead = false;
+
+        if (logfile == null) {
+            logfile = new File(context.getFilesDir() +"/" + getUnitName() + "/datalog.txt");
+            if (!logfile.exists())
+            {
+                logfile.mkdirs();
+            }
+        }
 
         //prepare the Loggingfile
         logfile.delete();
@@ -705,6 +721,7 @@ public abstract class LoggingUnit implements Serializable {
                         //Protocolendline
                         PrintOnMonitor.printMon("; end of Protocol reached!", PrintOnMonitor.Reason.UNITINTERFACE);
                         PrintOnMonitor.printMon(null, PrintOnMonitor.Reason.UNITINTERFACE);
+                        PrintOnMonitor.printlnMon("LogDatas written into file: " + logfile.getAbsolutePath(), PrintOnMonitor.Reason.GENERAL);
                         finishedRead = true;
                         result = commandNo;
                     } else {
@@ -724,8 +741,9 @@ public abstract class LoggingUnit implements Serializable {
      * @param receivedLogData (as String)
      */
     private void writeDatasIntoLoggingFile(String receivedLogData) {
+
         // Append flag is set to true
-        try (FileWriter fw = new FileWriter(LoggingUnit.logfile, true)) {
+        try (FileWriter fw = new FileWriter(logfile)) {
             fw.write(receivedLogData);
             fw.write("\r\n");
         } catch (IOException e) {

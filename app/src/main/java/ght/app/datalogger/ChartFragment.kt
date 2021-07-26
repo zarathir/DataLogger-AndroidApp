@@ -48,7 +48,7 @@ class ChartFragment : Fragment() {
         val model: UnitViewModel by activityViewModels()
 
         val chart = AnyChart.line()
-        chart.title( "Trenddaten: " + model.getActiveUnit())
+        chart.title( model.getActiveUnit() + "  (" + (model.getTrendDataSize()-1) + " Datenpunkte)")
         chart.yAxis(0).title("Sensorwert")
         chart.xScroller(true);
 

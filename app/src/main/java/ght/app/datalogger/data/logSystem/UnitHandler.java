@@ -83,6 +83,7 @@ public class UnitHandler implements Serializable{
                     PrintOnMonitor.printlnMon(oneUnit.getUnitName(), PrintOnMonitor.Reason.GENERAL);
                 }
                 PrintOnMonitor.printlnMon("------------------------------------------", PrintOnMonitor.Reason.GENERAL);
+                PrintOnMonitor.printlnMon("UnitDatas written into file: " + file.getAbsolutePath(), PrintOnMonitor.Reason.GENERAL);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -116,6 +117,7 @@ public class UnitHandler implements Serializable{
                 oneUnit.initUnit();
             }
             PrintOnMonitor.printlnMon("------------------------------------------", PrintOnMonitor.Reason.GENERAL);
+            PrintOnMonitor.printlnMon("UnitDatas read of file: " + file.getAbsolutePath(), PrintOnMonitor.Reason.GENERAL);
         } catch (FileNotFoundException ed) {
             throw new ExceptionDeserialization();
         } catch (StreamCorruptedException ed) {

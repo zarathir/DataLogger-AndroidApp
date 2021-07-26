@@ -19,6 +19,8 @@ import ght.app.datalogger.data.logSystem.IntfGuiListener
 import ght.app.datalogger.data.logSystem.LoggingUnit
 import ght.app.datalogger.data.logSystem.PrintOnMonitor
 import ght.app.datalogger.databinding.FragmentUnitListBinding
+import android.content.Context
+import android.content.ContextWrapper
 
 /**
  * [Fragment] to display the units in a view and perform actions on each unit
@@ -35,11 +37,15 @@ class UnitListFragment : Fragment(), IntfGuiListener {
     private var adapter: UnitAdapter? = null
     private var onclickInterface: EventInterface? = null
 
+    private var thiscontext: Context? = null;
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-
+        if (container != null) {
+            thiscontext = container.getContext()
+        };
         _binding = FragmentUnitListBinding.inflate(inflater, container, false)
         return binding.root
 
@@ -47,7 +53,6 @@ class UnitListFragment : Fragment(), IntfGuiListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
 
 
         onclickInterface = object : EventInterface {
@@ -79,7 +84,7 @@ class UnitListFragment : Fragment(), IntfGuiListener {
                     EventInterface.Click.CONNECT -> {
                         makeSnack(view, "Versuche zu verbinden...")
                         makeSnack(view, model.connectUnit(unitName))
-                        model.sendCommand(2, unitName)
+                        thiscontext?.let { model.sendCommand(2, unitName, it) }
                         adapter!!.notifyItemChanged(pos)
                         model.addListener(
                             this@UnitListFragment,
@@ -113,15 +118,27 @@ class UnitListFragment : Fragment(), IntfGuiListener {
                     }
 
                     EventInterface.Click.BUTTON1 -> {
-                        makeSnack(view, model.sendCommand(1, unitName))
+                        thiscontext?.let { model.sendCommand(1, unitName, it) }?.let {
+                            makeSnack(view,
+                                it
+                            )
+                        }
                     }
 
                     EventInterface.Click.BUTTON2 -> {
-                        makeSnack(view, model.sendCommand(2, unitName))
+                        thiscontext?.let { model.sendCommand(2, unitName, it) }?.let {
+                            makeSnack(view,
+                                it
+                            )
+                        }
                     }
 
                     EventInterface.Click.BUTTON3 -> {
-                        makeSnack(view, model.sendCommand(3, unitName))
+                        thiscontext?.let { model.sendCommand(3, unitName, it) }?.let {
+                            makeSnack(view,
+                                it
+                            )
+                        }
                     }
                 }
             }
@@ -189,7 +206,13 @@ class UnitListFragment : Fragment(), IntfGuiListener {
                 activity?.runOnUiThread {
                     val unit = model.getUnit(unitName)
                     adapter!!.updateViewHolder(model.units.value!!.indexOf(unit))
-                    Toast.makeText(context, unitName + ":\n $value empfangen", Toast.LENGTH_LONG).show()
+                    if (value == 2) {
+                        val datapoints = unit.sizeLogDataList-1
+                        Toast.makeText(context, unitName + ":\n $value empfangen \n ($datapoints Datenpunkte)", Toast.LENGTH_LONG).show()
+                    }else {
+                        Toast.makeText(context, unitName + ":\n $value empfangen", Toast.LENGTH_LONG).show()
+                    }
+
                 }
                 Log.d("1","Listener CMDFEEDBACK_RECEIVED got triggered!")
             }

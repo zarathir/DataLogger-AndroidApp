@@ -10,7 +10,7 @@
     <TextView
         android:id="@+id/title_Initiator"
         android:layout_width="130dp"
-        android:layout_height="80dp"
+        android:layout_height="81dp"
         android:text="@string/initator"
         android:textColor="@color/secondaryColor"
         android:textSize="20sp"
@@ -65,7 +65,7 @@
     <TextView
         android:id="@+id/title_Version"
         android:layout_width="130dp"
-        android:layout_height="wrap_content"
+        android:layout_height="54dp"
         android:text="@string/version"
         android:textColor="@color/secondaryColor"
         android:textSize="20sp"
@@ -81,7 +81,7 @@
     <TextView
         android:id="@+id/title_Develobers"
         android:layout_width="130dp"
-        android:layout_height="80dp"
+        android:layout_height="81dp"
         android:text="@string/developers"
         android:textColor="@color/secondaryColor"
         android:textSize="20sp"
@@ -106,6 +106,19 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/title_Version"
         app:layout_constraintTop_toTopOf="@+id/title_Version" />
+
+    <TextView
+        android:id="@+id/value_VersionsCode"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:text="---"
+        android:textColor="@color/secondaryColor"
+        android:textSize="20sp"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/title_Version"
+        app:layout_constraintTop_toBottomOf="@+id/value_Version" />
 
     <TextView
         android:id="@+id/value_Developer1"

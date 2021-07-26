@@ -94,6 +94,15 @@ class UnitViewModel : ViewModel() {
     }
 
     /**
+     * Gets the trend data from the requested [LoggingUnit]
+     * @return [ArrayList]<[String]> with log data format
+     */
+    fun getTrendDataSize(): Long {
+        val unit = unitHandler.getCertainUnit(activeUnit)
+        return unit.sizeLogDataList
+    }
+
+    /**
      * Safe all added [LoggingUnit]'s to the [UnitHandler]
      * @param context App [Context] for creating the file in the app directory
      */
@@ -150,21 +159,21 @@ class UnitViewModel : ViewModel() {
      * @param unitName Unit name of the [LoggingUnit]
      * @return Message which command was sent to the [LoggingUnit]
      */
-    fun sendCommand(command: Int, unitName: String): String {
+    fun sendCommand(command: Int, unitName: String, context: Context): String {
         val unit = unitHandler.getCertainUnit(unitName)
 
         return if (unit.isConnected) {
             when(command) {
                 1 -> {
-                    unit.sendCommand(123)
+                    unit.sendCommand(123, context)
                     "Kommando 1 gesendet..."
                 }
                 2 -> {
-                    unit.sendCommand(2)
+                    unit.sendCommand(2, context)
                     "Kommando 2 gesendet..."
                 }
                 3 -> {
-                    unit.sendCommand(3)
+                    unit.sendCommand(3, context)
                     "Kommando 3 gesendet..."
                 }
                 else -> "Kommando konnte nicht abgesetzt werden"

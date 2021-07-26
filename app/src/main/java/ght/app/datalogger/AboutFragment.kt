@@ -46,6 +46,13 @@ class AboutFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.valueVersion.text = BuildConfig.VERSION_NAME;
+        if (BuildConfig.VERSION_CODE.toString().length == 1) {
+            binding.valueVersionsCode.text = "V00" + BuildConfig.VERSION_CODE.toString();
+        } else if (BuildConfig.VERSION_CODE.toString().length == 2) {
+            binding.valueVersionsCode.text = "V0" + BuildConfig.VERSION_CODE.toString();
+        } else {
+            binding.valueVersionsCode.text = "V" + BuildConfig.VERSION_CODE.toString();
+        }
 
         /*binding.fab.setOnClickListener {
             findNavController().navigate(R.id.action_AboutFragment_to_FirstFragment)

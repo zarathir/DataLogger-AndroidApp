@@ -1,5 +1,7 @@
 package ght.app.datalogger.data.logSystem;
 
+import android.content.Context;
+
 import ght.app.datalogger.data.units.UnitArduino;
 import ght.app.datalogger.data.units.UnitServerArduino;
 import org.junit.jupiter.api.BeforeEach;
@@ -263,10 +265,11 @@ public class LoggingUnitTest implements IntfGuiListener {
         unitArd1.connect();
 
         //check if different comandos can be sent to the server without any exception
-        assertTrue(unitArd1.sendCommand(-1));
-        assertTrue(unitArd1.sendCommand(0));
-        assertTrue(unitArd1.sendCommand(2147483647));
-        assertTrue(unitArd1.sendCommand(-2147483648));
+        Context myContext = null;
+        assertTrue(unitArd1.sendCommand(-1, myContext));
+        assertTrue(unitArd1.sendCommand(0, myContext));
+        assertTrue(unitArd1.sendCommand(2147483647, myContext));
+        assertTrue(unitArd1.sendCommand(-2147483648, myContext));
         serverThread.interrupt();
         Thread.currentThread().sleep(200);
     }
