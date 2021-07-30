@@ -15,7 +15,11 @@ import java.net.Socket;
 
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -62,12 +66,17 @@ public abstract class LoggingUnit implements Serializable {
 
     private transient long startTime; //Nano-Seconds
     private transient Context myContext;
-    private transient File logfile;
+    private transient String lastLog;
+    private File logfile;
 
     //Constructor
     public LoggingUnit(String unitName) {
         this.unitName = unitName;
-        myContext = null;
+        if (this instanceof UnitArduino) {
+            this.unitVendor = EnumUnits.ARDUINO;
+        } else if (this instanceof UnitRaspberry) {
+            this.unitVendor = EnumUnits.RASPBERRY;
+        }
         this.logfile = null;
         initUnit();
     }
@@ -85,11 +94,6 @@ public abstract class LoggingUnit implements Serializable {
         this.streamReader = null;
         this.reader = null;
         this.unitReaderThread = null;
-        if (this instanceof UnitArduino) {
-            this.unitVendor = EnumUnits.ARDUINO;
-        } else if (this instanceof UnitRaspberry) {
-            this.unitVendor = EnumUnits.RASPBERRY;
-        }
 
         this.connectionStateListeners = new HashSet<>();
         this.connectionLostListeners = new HashSet<>();
@@ -99,6 +103,10 @@ public abstract class LoggingUnit implements Serializable {
         this.startTime = 0;
 
         this.obj = new Object();
+        this.myContext = null;
+        this.lastLog = null;
+
+        readDatasOfLoggingFile(logfile);
     }
 
 
@@ -165,6 +173,30 @@ public abstract class LoggingUnit implements Serializable {
      */
     public ArrayList<String> getLogDataList() {
         return logDataList;
+    }
+
+    /**
+     * Methode reads the Logdata out of the file and writes it into the Arraylist logDataList.
+     * This will be done just if the logfile is not null and if it exists. If so, the ArrayList will be cleared before writing into it.
+     * @param logfile (as File) if it is null, no datas will be written into the ArrayList and no clear will be made
+     */
+    private void readDatasOfLoggingFile(File logfile) {
+        if (logfile != null && logfile.exists()) {
+            try (FileReader fr = new FileReader(logfile)) {
+                BufferedReader br = new BufferedReader(fr);
+                String line = null;
+                clearLogDataList();
+                while ((line = br.readLine()) != null) {
+                    addLogLine(line);
+                    lastLog = line;
+                }
+                br.close();
+                fr.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
     }
 
     /**
@@ -674,6 +706,13 @@ public abstract class LoggingUnit implements Serializable {
             if (!logfile.exists())
             {
                 logfile.mkdirs();
+                //prepare the Loggingfile
+                /*logfile.delete();
+                try {
+                    logfile.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }*/
             }
         }
 
@@ -742,12 +781,47 @@ public abstract class LoggingUnit implements Serializable {
      */
     private void writeDatasIntoLoggingFile(String receivedLogData) {
 
-        // Append flag is set to true
-        try (FileWriter fw = new FileWriter(logfile)) {
-            fw.write(receivedLogData);
-            fw.write("\r\n");
-        } catch (IOException e) {
+        //if (logDataToAdd(receivedLogData)) {
+            // Append flag is set to true
+            try (FileWriter fw = new FileWriter(logfile, true)) {
+                fw.write(receivedLogData);
+                fw.write("\r\n");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        //}
+    }
+
+    /**
+     * finds out if the Logdata is past the lastLogData
+     * @param receivedLogData (as String)
+     * @return to add or not (as boolean)
+     */
+    private boolean logDataToAdd(String receivedLogData) {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+        Calendar receivedDate  = Calendar.getInstance();
+        Calendar lastLogDate = Calendar.getInstance();
+
+        try{
+            df.parse(receivedLogData.trim().substring(0,19));
+        } catch(ParseException ex){
+            //s entspricht keinem Datum
+            return false;
+        }
+
+        try {
+            receivedDate.setTime(df.parse(receivedLogData.trim().substring(0,19)));
+        } catch (ParseException e) {
             e.printStackTrace();
         }
+
+        try {
+            lastLogDate.setTime(df.parse(lastLog.trim().substring(0,19)));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+
+        return receivedDate.after(lastLogDate);
     }
 }
