@@ -85,6 +85,15 @@ class UnitViewModel : ViewModel() {
     }
 
     /**
+     * Gets Connectionstate of the [LoggingUnit]
+     * @return Connectionstate of the activeUnit
+     */
+    fun getConnectionState(): Boolean {
+        val unit = unitHandler.getCertainUnit(activeUnit)
+        return (unit.isConnected)
+    }
+
+    /**
      * Gets the trend data from the requested [LoggingUnit]
      * @return [ArrayList]<[String]> with log data format
      */
@@ -101,6 +110,15 @@ class UnitViewModel : ViewModel() {
         val unit = unitHandler.getCertainUnit(activeUnit)
         return unit.sizeLogDataList
     }
+
+    /**
+     * deleted the LoggingDataFile of the requested [LoggingUnit]
+     */
+    fun deleteTrendDataFile() {
+        val unit = unitHandler.getCertainUnit(activeUnit)
+        unit.removeLoggingFile();
+    }
+
 
     /**
      * Safe all added [LoggingUnit]'s to the [UnitHandler]

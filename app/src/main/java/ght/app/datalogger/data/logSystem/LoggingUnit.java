@@ -200,6 +200,15 @@ public abstract class LoggingUnit implements Serializable {
     }
 
     /**
+     * Methode removes the logfile if it already exists. This will be performed if the Unit gets removed.
+     */
+    public void removeLoggingFile() {
+        if (logfile != null && logfile.exists()) {
+            logfile.delete();
+        }
+    }
+
+    /**
      * Methode to get the IP-Adress of the Unit
      * @return  IP-Adress (as InetAddress)
      */

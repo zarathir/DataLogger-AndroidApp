@@ -24,5 +24,6 @@ interface EventInterface {
         BUTTON3,
         REMOVE,
         TREND,
+        REFRESHTREND,
     }
 }

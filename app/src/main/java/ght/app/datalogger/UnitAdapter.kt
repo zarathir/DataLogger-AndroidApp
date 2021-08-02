@@ -61,11 +61,11 @@ class UnitAdapter(
             holder.btnCmd3.visibility = INVISIBLE
         }
 
-        if (list[position].logDataList.isEmpty()) {
+        /*if (list[position].logDataList.isEmpty()) {
             holder.btnTrendView.visibility = INVISIBLE
         } else {
             holder.btnTrendView.visibility = VISIBLE
-        }
+        }*/
 
         holder.btnConnect.setOnClickListener {
             if (!list[position].isConnected){

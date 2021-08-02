@@ -63,6 +63,7 @@ class UnitListFragment : Fragment(), IntfGuiListener {
 
                 when (source) {
                     EventInterface.Click.REMOVE -> {
+                        model.setActiveUnit(unitName)
                         model.removeListener(
                             this@UnitListFragment,
                             IntfGuiListener.LogUnitEvent.CONNECTION_STATE,
@@ -70,6 +71,7 @@ class UnitListFragment : Fragment(), IntfGuiListener {
                         if (unit.isConnected) {
                             unit.disconnect()
                         }
+                        model.deleteTrendDataFile()
                         model.removeUnit(unit)
                         adapter!!.notifyItemRemoved(pos)
                     }
@@ -84,7 +86,7 @@ class UnitListFragment : Fragment(), IntfGuiListener {
                     EventInterface.Click.CONNECT -> {
                         makeSnack(view, "Versuche zu verbinden...")
                         makeSnack(view, model.connectUnit(unitName))
-                        thiscontext?.let { model.sendCommand(2, unitName, it) }
+                        //thiscontext?.let { model.sendCommand(2, unitName, it) }
                         adapter!!.notifyItemChanged(pos)
                         model.addListener(
                             this@UnitListFragment,
